@@ -1,3 +1,5 @@
+// TODO unclear if needed
+
 let express = require('express');
 let router = express.Router();
 // TODO let mongoose = require('mongoose');
