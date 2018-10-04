@@ -1,3 +1,9 @@
+# Webstorm files
+.idea/
+
+
+
+# From Node.gitignore:
 # Logs
 logs
 *.log
@@ -71,6 +77,3 @@ typings/
 
 # Serverless directories
 .serverless
-
-# WebStorm files
-.idea/
