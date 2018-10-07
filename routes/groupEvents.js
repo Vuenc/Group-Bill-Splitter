@@ -4,6 +4,7 @@ let mongoose = require('mongoose');
 
 let GroupEvent = require('../models/groupEvents');
 
+// TODO connect only once
 let mongodbUri = require('../models/mongodbUri');
 mongoose.connect(mongodbUri);
 let db = mongoose.connection;
@@ -13,7 +14,7 @@ db.on('error', err => {
 });
 
 db.once('open', () => {
-    console.log('Successfully connected to [' + db.name + ']');
+    console.log('groupEvents: Successfully connected to [' + db.name + ']');
 });
 
 
@@ -32,7 +33,7 @@ router.getOne = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
     // TODO error handling
-    GroupEvent.find({"_id": req.params.id}, (err, groupEvent) => {
+    GroupEvent.findOne({_id: req.params.id}, (err, groupEvent) => {
         if(err)
             res.send(err);
         else
@@ -47,7 +48,6 @@ router.addGroupEvent = (req, res) => {
     let groupEvent = new GroupEvent();
     groupEvent.name = req.body.name;
     groupEvent.currencyPrefix = req.body.currencyPrefix;
-    groupEvent.groupMembers = req.body.groupMembers;
 
     groupEvent.save(err => {
         if(err)

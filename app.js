@@ -8,6 +8,7 @@ let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
 
 const groupEventsRouter = require('./routes/groupEvents');
+const groupMembersRouter = require('./routes/groupMembers');
 const expensesRouter = require('./routes/expenses');
 
 let app = express();
@@ -23,11 +24,15 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+app.use('/users', usersRouter); // TODO get rid of
 
 app.get('/groupEvents', groupEventsRouter.getAll); // TODO remove this route?
 app.get('/groupEvents/:id', groupEventsRouter.getOne);
 app.post('/groupEvents', groupEventsRouter.addGroupEvent);
+
+app.get('/groupEvents/:groupEventId/members', groupMembersRouter.getAll);
+app.get('/groupEvents/:groupEventId/members/:id', groupMembersRouter.getOne);
+app.post('/groupEvents/:groupEventId/members', groupMembersRouter.addGroupMember);
 
 app.get('/groupEvents/:groupEventId/expenses', expensesRouter.getAll);
 app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOne);
