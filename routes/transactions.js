@@ -3,23 +3,10 @@ let express = require('express');
 let router = express.Router();
 let mongoose = require('mongoose');
 
+require('../models/mongooseConnection');
 let GroupEvent = require('../models/groupEvents');
 let GroupMember = require('../models/groupMembers')
 let Expense = require('../models/expenses');
-
-// TODO connect only once
-let mongodbUri = require('../models/mongodbUri');
-mongoose.connect(mongodbUri);
-let db = mongoose.connection;
-
-db.on('error', err => {
-    console.log('Unable to connect to [' + db.name + ']', err);
-});
-
-db.once('open', () => {
-    console.log('transactions: Successfully connected to [' + db.name + ']');
-});
-
 
 router.getAll = (req, res) => {
   res.setHeader('Content-Type', 'application/json');
