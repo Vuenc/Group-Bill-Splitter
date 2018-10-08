@@ -10,7 +10,8 @@ router.getAll = (req, res) => {
 
     GroupEvent.find({_id: req.params.groupEventId})
         .then(groupEvent => {
-            if(groupEvent.length === 0) throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+            if(groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
             return GroupMember.find({groupEventId: req.params.groupEventId});
         })
         .then(groupMember => res.send(groupMember))
@@ -23,12 +24,16 @@ router.getOne = (req, res) => {
 
     GroupEvent.find({_id: req.params.groupEventId})
         .then(groupEvent => {
-            if(groupEvent.length === 0) throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+            if(groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+
             return GroupMember.find({_id: req.params.id, groupEventId: req.params.groupEventId});
         })
         .then(groupMember => {
-            if(groupMember.length === 0) throw {message: "Group member with id " + req.params.id + " not found!"};
-            res.send(groupMember)
+            if(groupMember.length === 0)
+                throw {message: "Group member with id " + req.params.id + " not found!"};
+
+            res.send(groupMember[0])
         })
         .catch(err => res.send(err)); // TODO send different response code
 };
@@ -39,7 +44,8 @@ router.addGroupMember = (req, res) => {
     // TODO validate all necessary data present
     GroupEvent.find({_id: req.params.groupEventId})
         .then(groupEvent => {
-            if(groupEvent.length === 0) throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+            if(groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
             let groupMember = new GroupMember();
             groupMember.groupEventId = req.params.groupEventId;
