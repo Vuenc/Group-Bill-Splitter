@@ -70,10 +70,9 @@ router.addExpense = (req, res) => {
                             expense.amount = req.body.amount;
                             expense.date = req.body.date;
                             expense.description = req.body.description;
-                            // TODO check all group members exist
                             expense.sharingGroupMembers = req.body.sharingGroupMembers;
 
-                            // TODO update balances?
+                            // TODO update balance? groupMember.summedBalance
 
                             expense.save(err => {
                                 if (err)

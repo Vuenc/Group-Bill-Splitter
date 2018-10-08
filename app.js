@@ -10,6 +10,7 @@ let usersRouter = require('./routes/users');
 const groupEventsRouter = require('./routes/groupEvents');
 const groupMembersRouter = require('./routes/groupMembers');
 const expensesRouter = require('./routes/expenses');
+const transactionsRouter = require('./routes/transactions');
 
 let app = express();
 
@@ -37,6 +38,8 @@ app.post('/groupEvents/:groupEventId/members', groupMembersRouter.addGroupMember
 app.get('/groupEvents/:groupEventId/expenses', expensesRouter.getAll);
 app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOne);
 app.post('/groupEvents/:groupEventId/expenses', expensesRouter.addExpense);
+
+app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAll);
 
 // TODO add more routes
 
