@@ -38,6 +38,7 @@ app.post('/groupEvents/:groupEventId/members', groupMembersRouter.addGroupMember
 app.get('/groupEvents/:groupEventId/expenses', expensesRouter.getAll);
 app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOne);
 app.post('/groupEvents/:groupEventId/expenses', expensesRouter.addExpense);
+app.put('/groupEvents/:groupEventId/expenses/:id', expensesRouter.editExpense);
 
 app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAll);
 

@@ -68,12 +68,47 @@ router.addExpense = (req, res) => {
           expense.description = req.body.description;
           expense.sharingGroupMembers = req.body.sharingGroupMembers;
 
-          // TODO update balance? groupMember.summedBalance
-
           return expense.save();
       })
       .then(expense => res.send({message: 'Expense added successfully', data: expense}))
       .catch(err => res.send({message: 'Expense not added!', errmsg: err})); // TODO unify error messages; status codes
+};
+
+router.editExpense = (req, res) => {
+    GroupEvent.find({_id: req.params.groupEventId})
+        .then(groupEvent => {
+            if (groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+
+            return GroupMember.find({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId});
+        })
+        .then(payingGroupMember => {
+            if (payingGroupMember.length === 0)
+                throw {message: "Group member with id " + req.body.payingGroupMember + " not found!"};
+
+            return GroupMember.find({_id: {$in: req.body.sharingGroupMembers}});
+        })
+        .then(sharingGroupMembers => {
+            if (req.body.sharingGroupMembers && sharingGroupMembers.length !== req.body.sharingGroupMembers.length)
+                throw {message: "Field sharingGroupMembers includes invalid entries"}; // TODO unify error messages
+
+            return Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId});
+        })
+        .then(expense => {
+            if (expense.length === 0)
+                throw {message: "Expense with id " + req.params.id + " not found!"};
+            expense = expense[0];
+
+            expense.payingGroupMember = req.body.payingGroupMember;
+            expense.amount = req.body.amount;
+            expense.date = req.body.date;
+            expense.description = req.body.description;
+            expense.sharingGroupMembers = req.body.sharingGroupMembers;
+
+            return expense.save();
+        })
+        .then(expense => res.send({message: 'Expense edited successfully', data: expense}))
+        .catch(err => res.send({message: 'Expense not edited!', errmsg: err})); // TODO unify error messages; status codes
 };
 
 module.exports = router;

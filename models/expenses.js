@@ -1,13 +1,12 @@
 let mongoose = require('mongoose');
 
 let ExpenseSchema = new mongoose.Schema({
-        groupEventId: mongoose.Schema.Types.ObjectId, // TODO correct?
-        // TODO name: String,
-        amount: mongoose.Schema.Types.Decimal128,
-        payingGroupMember: mongoose.Schema.Types.ObjectId, // TODO best way to do this?
+        groupEventId: {type: mongoose.Schema.Types.ObjectId, required: true},
+        amount: {type: mongoose.Schema.Types.Decimal128, required: true},
+        payingGroupMember: {type: mongoose.Schema.Types.ObjectId, required: true},
         date: Date,
         description: String,
-        sharingGroupMembers: [mongoose.Schema.Types.ObjectId], // TODO best way to do this?
+        sharingGroupMembers: [mongoose.Schema.Types.ObjectId]
     },
     {
         collection: 'expensesdb'
