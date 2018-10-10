@@ -111,4 +111,23 @@ router.editExpense = (req, res) => {
         .catch(err => res.send({message: 'Expense not edited!', errmsg: err})); // TODO unify error messages; status codes
 };
 
+router.deleteExpense = (req, res) =>  {
+    GroupEvent.find({_id: req.params.groupEventId})
+        .then(groupEvent => {
+            if (groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+
+            return Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId});
+        })
+        .then(expense => {
+            if (expense.length === 0)
+                throw {message: "Expense with id " + req.params.id + " not found!"};
+            expense = expense[0];
+
+            return expense.delete();
+        })
+        .then(expense => res.send({message: 'Expense deleted successfully', data: expense}))
+        .catch(err => res.send({message: 'Expense not deleted!', errmsg: err})); // TODO unify error messages; status codes
+};
+
 module.exports = router;
