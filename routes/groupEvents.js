@@ -34,14 +34,43 @@ router.addGroupEvent = (req, res) => {
         let groupEvent = new GroupEvent();
         groupEvent.name = req.body.name;
         groupEvent.currencyPrefix = req.body.currencyPrefix;
-        console.log('1');
+
         return groupEvent.save();
     })
-    .then(groupEvent => {
-        console.log('2');
-        res.send({message: 'Group event added successfully', data: groupEvent});
-    })
+    .then(groupEvent => res.send({message: 'Group event added successfully', data: groupEvent}))
     .catch(err => res.send({message: 'Group event not added!', errmsg: err})); // TODO unify error messages*/
+};
+
+router.editGroupEvent = (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+
+    GroupEvent.find({_id: req.params.id})
+        .then(groupEvent => {
+            if (groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+            groupEvent = groupEvent[0];
+
+            groupEvent.name = req.body.name;
+            groupEvent.currencyPrefix = req.body.currencyPrefix;
+
+            return groupEvent.save();
+        })
+        .then(groupEvent => res.send({message: 'Group event edited successfully', data: groupEvent}))
+        .catch(err => res.send({message: 'Group event not edited!', errmsg: err})); // TODO unify error messages*/
+};
+
+router.deleteGroupEvent = (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+
+    GroupEvent.find({_id: req.params.id})
+        .then(groupEvent => {
+            if (groupEvent.length === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+
+            return groupEvent[0].delete();
+        })
+        .then(() => res.send({message: 'Group event deleted successfully'}))
+        .catch(err => res.send({message: 'Group event not deleted!', errmsg: err})); // TODO unify error messages*/
 };
 
 module.exports = router;

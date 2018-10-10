@@ -30,10 +30,14 @@ app.use('/users', usersRouter); // TODO get rid of
 app.get('/groupEvents', groupEventsRouter.getAll); // TODO remove this route?
 app.get('/groupEvents/:id', groupEventsRouter.getOne);
 app.post('/groupEvents', groupEventsRouter.addGroupEvent);
+app.put('/groupEvents/:id', groupEventsRouter.editGroupEvent);
+app.delete('/groupEvents/:id', groupEventsRouter.deleteGroupEvent);
 
 app.get('/groupEvents/:groupEventId/members', groupMembersRouter.getAll);
 app.get('/groupEvents/:groupEventId/members/:id', groupMembersRouter.getOne);
 app.post('/groupEvents/:groupEventId/members', groupMembersRouter.addGroupMember);
+app.put('/groupEvents/:groupEventId/members/:id', groupMembersRouter.editGroupMember);
+app.delete('/groupEvents/:groupEventId/members/:id', groupMembersRouter.deleteGroupMember);
 
 app.get('/groupEvents/:groupEventId/expenses', expensesRouter.getAll);
 app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOne);

@@ -75,6 +75,8 @@ router.addExpense = (req, res) => {
 };
 
 router.editExpense = (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+
     GroupEvent.find({_id: req.params.groupEventId})
         .then(groupEvent => {
             if (groupEvent.length === 0)
@@ -112,6 +114,8 @@ router.editExpense = (req, res) => {
 };
 
 router.deleteExpense = (req, res) =>  {
+    res.setHeader('Content-Type', 'application/json');
+
     GroupEvent.find({_id: req.params.groupEventId})
         .then(groupEvent => {
             if (groupEvent.length === 0)
@@ -122,9 +126,8 @@ router.deleteExpense = (req, res) =>  {
         .then(expense => {
             if (expense.length === 0)
                 throw {message: "Expense with id " + req.params.id + " not found!"};
-            expense = expense[0];
 
-            return expense.delete();
+            return expense[0].delete();
         })
         .then(expense => res.send({message: 'Expense deleted successfully', data: expense}))
         .catch(err => res.send({message: 'Expense not deleted!', errmsg: err})); // TODO unify error messages; status codes
