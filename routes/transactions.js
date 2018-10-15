@@ -13,7 +13,7 @@ function calculateGroupMemberDues(groupMembers, expenses) {
         groupMemberDues[member._id] = 0; // TODO correctly calculating with decimals?
     }
     for (expense of expenses) {
-        expenseSharingMembers = expense.sharingGroupMembers.length > 0 ? expense.sharingGroupMembers // TODO necessary?
+        let expenseSharingMembers = expense.sharingGroupMembers.length > 0 ? expense.sharingGroupMembers // TODO necessary?
             : groupMembers.map(m => m._id);
         let amount = Number(expense.amount);
         for (member of expenseSharingMembers) {
@@ -57,7 +57,8 @@ router.getAll = (req, res) => {
   res.setHeader('Content-Type', 'application/json');
 
   let groupMembers = null;
-  // Find all GroupMembers in the group event
+
+  // Make sure the group event exists
   GroupEvent.find({_id: req.params.groupEventId})
       .then(groupEvent => {
           if(groupEvent.length === 0)
@@ -65,10 +66,12 @@ router.getAll = (req, res) => {
 
           return GroupMember.find({groupEventId: req.params.groupEventId});
       })
+      // Find all group members in the group event
       .then(_groupMembers => {
           groupMembers = _groupMembers;
           return Expense.find({groupEventId: req.params.groupEventId});
       })
+      // Find all expenses in the group event and calculate the transactions
       .then(expenses => {
           // Create a map from group members to their dues
           let groupMemberDues = calculateGroupMemberDues(groupMembers, expenses);
