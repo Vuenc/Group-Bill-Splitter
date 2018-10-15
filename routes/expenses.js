@@ -60,17 +60,18 @@ router.addExpense = (req, res) => {
               throw {message: "Field sharingGroupMembers includes invalid entries"}; // TODO unify error messages
 
           // TODO validate data
-          let expense = new Expense();
+          let expense = new Expense(req.body);
           expense.groupEventId = req.params.groupEventId;
+          /*
           expense.payingGroupMember = req.body.payingGroupMember;
           expense.amount = req.body.amount;
           expense.date = req.body.date;
           expense.description = req.body.description;
           expense.sharingGroupMembers = req.body.sharingGroupMembers;
-
+          */
           return expense.save();
       })
-      .then(expense => res.send({message: 'Expense added successfully', data: expense}))
+      .then(expense => res.send({message: 'Expense added successfully', data: expense}))  // TODO default doesn't work here!
       .catch(err => res.send({message: 'Expense not added!', errmsg: err})); // TODO unify error messages; status codes
 };
 
@@ -101,6 +102,7 @@ router.editExpense = (req, res) => {
                 throw {message: "Expense with id " + req.params.id + " not found!"};
             expense = expense[0];
 
+            // TODO inconsistent with/more complicated than add code
             expense.payingGroupMember = req.body.payingGroupMember;
             expense.amount = req.body.amount;
             expense.date = req.body.date;
@@ -114,6 +116,7 @@ router.editExpense = (req, res) => {
 };
 
 router.deleteExpense = (req, res) =>  {
+    // TODO ensure consistency!
     res.setHeader('Content-Type', 'application/json');
 
     GroupEvent.find({_id: req.params.groupEventId})

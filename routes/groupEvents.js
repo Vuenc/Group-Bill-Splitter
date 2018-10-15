@@ -31,9 +31,11 @@ router.addGroupEvent = (req, res) => {
     // TODO validate all necessary data present
     Promise.resolve()
     .then(() => {
-        let groupEvent = new GroupEvent();
+        let groupEvent = new GroupEvent(req.body);
+        /*
         groupEvent.name = req.body.name;
         groupEvent.currencyPrefix = req.body.currencyPrefix;
+        */
 
         return groupEvent.save();
     })
@@ -60,6 +62,7 @@ router.editGroupEvent = (req, res) => {
 };
 
 router.deleteGroupEvent = (req, res) => {
+    // TODO ensure consistency (delete all contents)
     res.setHeader('Content-Type', 'application/json');
 
     GroupEvent.find({_id: req.params.id})

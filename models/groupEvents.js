@@ -2,7 +2,7 @@ let mongoose = require('mongoose');
 
 let GroupEventSchema = new mongoose.Schema({
         name: {type: String, required: true},
-        currencyPrefix: String,
+        currencyPrefix: {type: String, default: "€ "},
         // groupMembers: [mongoose.Schema.Types.ObjectId], // TODO best way to do this?
     },
     {

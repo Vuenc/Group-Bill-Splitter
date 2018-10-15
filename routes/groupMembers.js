@@ -47,10 +47,14 @@ router.addGroupMember = (req, res) => {
             if(groupEvent.length === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
-            let groupMember = new GroupMember();
+            let groupMember = new GroupMember(req.body);
             groupMember.groupEventId = req.params.groupEventId;
+
+            /*
             groupMember.name = req.body.name;
             groupMember.summedBalance = 0;
+            */
+
             return groupMember.save();
         })
         .then(groupMember => {
