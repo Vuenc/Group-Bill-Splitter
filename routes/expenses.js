@@ -9,17 +9,10 @@ let Expense = require('../models/expenses');
 let respondToError = require('../lib/helpers').respondToError;
 
 router.getAll = (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Type', 'application/json');
 
-    // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if (groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
-
-            return Expense.find({'groupEventId': req.params.groupEventId});
-        })
-        // Find all expenses and send them
+    // Find all expenses and send them
+    Expense.find({'groupEventId': req.params.groupEventId})
         .then(expenses => res.send(expenses))
         // If the group event doesn't exist or some other error occured, send the error
         .catch(err => respondToError(res, err));
@@ -28,15 +21,8 @@ router.getAll = (req, res) => {
 router.getOne = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if (groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
-
-            return Expense.find({'groupEventId': req.params.groupEventId, '_id': req.params.id});
-        })
-        // Find the expense and send it
+    // Find the expense and send it
+    Expense.find({'groupEventId': req.params.groupEventId, '_id': req.params.id})
         .then(expense => {
             if (expense.length === 0)
                 throw {message: "Expense with id " + req.params.id + " not found!", http_status: 404};
@@ -50,15 +36,8 @@ router.getOne = (req, res) => {
 router.addExpense = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-          if (groupEvent.length === 0)
-              throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
-
-          return GroupMember.find({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId});
-        })
-        // Make sure the paying group member exists
+    // Make sure the paying group member exists
+    GroupMember.find({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
         .then(payingGroupMember => {
           if (payingGroupMember.length === 0)
               throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
@@ -91,15 +70,7 @@ router.addExpense = (req, res) => {
 router.editExpense = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if (groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
-
-            return GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId});
-        })
-        // Make sure the paying group member exists
+    GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
         .then(payingGroupMemberCount => {
             if (payingGroupMemberCount === 0)
                 throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
@@ -139,15 +110,8 @@ router.deleteExpense = (req, res) =>  {
     // TODO ensure consistency!
     res.setHeader('Content-Type', 'application/json');
 
-    // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if (groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
-
-            return Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId});
-        })
-        // Find the expense and delete it
+    // Find the expense and delete it
+    Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId})
         .then(expense => {
             if (expense.length === 0)
                 throw {message: "Expense with id " + req.params.id + " not found!", http_status: 404};

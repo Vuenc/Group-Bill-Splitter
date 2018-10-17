@@ -5,7 +5,6 @@ let cookieParser = require('cookie-parser');
 let logger = require('morgan');
 
 let indexRouter = require('./routes/index');
-let usersRouter = require('./routes/users');
 
 const groupEventsRouter = require('./routes/groupEvents');
 const groupMembersRouter = require('./routes/groupMembers');
@@ -24,8 +23,9 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter); // TODO get rid of
+app.use('/', indexRouter); // TODO ?
+
+app.all('/groupEvents/:groupEventId/*', groupEventsRouter.verifyExists); // TODO :..*?
 
 app.get('/groupEvents', groupEventsRouter.getAll); // TODO remove this route?
 app.get('/groupEvents/:id', groupEventsRouter.getOne);

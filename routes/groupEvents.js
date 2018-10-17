@@ -23,7 +23,7 @@ router.getOne = (req, res) => {
     GroupEvent.find({_id: req.params.id})
         .then(groupEvent => {
             if(groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.id + " not found!"};
+                throw {message: "Group event with id " + req.params.id + " not found!", http_status: 404};
 
             res.send(groupEvent[0]);
         })
@@ -59,7 +59,7 @@ router.editGroupEvent = (req, res) => {
     GroupEvent.find({_id: req.params.id})
         .then(groupEvent => {
             if (groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
             groupEvent = groupEvent[0];
 
             groupEvent.name = req.body.name;
@@ -81,7 +81,7 @@ router.deleteGroupEvent = (req, res) => {
     GroupEvent.find({_id: req.params.id})
         .then(groupEvent => {
             if (groupEvent.length === 0)
-                throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
 
             return groupEvent[0].delete();
         })
@@ -89,6 +89,16 @@ router.deleteGroupEvent = (req, res) => {
         .then(() => res.send({message: 'Group event deleted successfully'}))
         // If deleting the group event failed, send error message
         .catch(err => respondToError(res, err, 'Group event not deleted!')); // TODO unify error messages*/
+};
+
+router.verifyExists = (req, res, next) => {
+    GroupEvent.countDocuments({_id: req.params.groupEventId})
+        .then(groupEventCount => {
+            if (groupEventCount === 0)
+                throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
+            next();
+        })
+        .catch(err => respondToError(res, err));
 };
 
 module.exports = router;
