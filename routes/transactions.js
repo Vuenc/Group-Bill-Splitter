@@ -27,7 +27,7 @@ function calculateGroupMemberDues(groupMembers, expenses) {
 function calculateLendersBorrowers(groupMemberDues) {
     let groupMemberDuesArray = Object.keys(groupMemberDues).map(k => ({id: k, amount: groupMemberDues[k]}));
     let lenders = groupMemberDuesArray.filter(m => m.amount > 0);
-    let borrowers = groupMemberDuesArray.filter(m => m.amount < 0).map(b => ({id: b.k, amount: b.amount * -1}));
+    let borrowers = groupMemberDuesArray.filter(m => m.amount < 0).map(b => ({id: b.id, amount: b.amount * -1}));
     return {lenders, borrowers};
 }
 
