@@ -6,6 +6,8 @@ let GroupEvent = require('../models/groupEvents');
 let GroupMember = require('../models/groupMembers');
 let Expense = require('../models/expenses');
 
+let respondToError = require('../lib/helpers').respondToError;
+
 router.getAll = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
@@ -19,7 +21,7 @@ router.getAll = (req, res) => {
         // Find all group members and send them
         .then(groupMember => res.send(groupMember))
         // If the group event doesn't exist or any other error occurs, send error message
-        .catch(err => res.send(err));
+        .catch(err => respondToError(res, err));
 
 };
 
@@ -42,7 +44,7 @@ router.getOne = (req, res) => {
             res.send(groupMember[0])
         })
         // If the group event or group member don't exist or any other error occurs, send error message
-        .catch(err => res.send(err)); // TODO send different response code
+        .catch(err => respondToError(res, err)); // TODO send different response code
 };
 
 router.addGroupMember = (req, res) => {
@@ -69,7 +71,7 @@ router.addGroupMember = (req, res) => {
             res.send({message: 'Group member added successfully', data: groupMember});
         })
         // If the group event doesn't exist or saving failed, send error message
-        .catch(err => res.send(err)); // TODO send different response code; unify message format
+        .catch(err => respondToError(res, err, 'Group member not added!')); // TODO send different response code; unify message format
 };
 
 router.editGroupMember = (req, res) => {
@@ -96,7 +98,7 @@ router.editGroupMember = (req, res) => {
         // If the group member was saved successfully, send a success message
         .then(groupMember => res.send({message: 'Group member edited successfully', data: groupMember}))
         // If the group event or group member don't exist or saving failed, send error message
-        .catch(err => res.send({message: 'Group member not edited!', errmsg: err})); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group member not edited!')); // TODO unify error messages*/
 };
 
 router.deleteGroupMember = (req, res) => {
@@ -130,7 +132,7 @@ router.deleteGroupMember = (req, res) => {
         // If the group member was deleted successfully, send a success message
         .then(() => res.send({message: 'Group member deleted successfully'}))
         // If the group event or group member don't exist or deleting failed, send error message
-        .catch(err => res.send({message: 'Group member not deleted!', errmsg: err})); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group member not deleted!')); // TODO unify error messages*/
 };
 
 module.exports = router;

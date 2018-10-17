@@ -4,6 +4,8 @@ let router = express.Router();
 require('../models/mongooseConnection');
 let GroupEvent = require('../models/groupEvents');
 
+let respondToError = require('../lib/helpers').respondToError;
+
 router.getAll = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
@@ -11,7 +13,7 @@ router.getAll = (req, res) => {
     GroupEvent.find()
         .then(groupEvents => res.send(groupEvents))
         // If any error occured, send the error
-        .catch(err => res.send(err)); // TODO JSON.stringify?
+        .catch(err => respondToError(res, err)); // TODO JSON.stringify?
 };
 
 router.getOne = (req, res) => {
@@ -26,7 +28,7 @@ router.getOne = (req, res) => {
             res.send(groupEvent[0]);
         })
         // If the group event doesn't exist or any other eror occured, send the error
-        .catch(err => res.send(err));  // TODO JSON.stringify?
+        .catch(err => respondToError(res, err));  // TODO JSON.stringify?
 };
 
 router.addGroupEvent = (req, res) => {
@@ -47,7 +49,7 @@ router.addGroupEvent = (req, res) => {
     // If the group event was saved successfully, send a success message
     .then(groupEvent => res.send({message: 'Group event added successfully', data: groupEvent}))
     // If the group event could not be saved, send the error
-    .catch(err => res.send({message: 'Group event not added!', errmsg: err})); // TODO unify error messages*/
+    .catch(err => respondToError(res, err, 'Group event not added!')); // TODO unify error messages*/
 };
 
 router.editGroupEvent = (req, res) => {
@@ -68,7 +70,7 @@ router.editGroupEvent = (req, res) => {
         // If the group event was saved successfully, send a success message
         .then(groupEvent => res.send({message: 'Group event edited successfully', data: groupEvent}))
         // If the group event could not be saved, send the error
-        .catch(err => res.send({message: 'Group event not edited!', errmsg: err})); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group event not edited!')); // TODO unify error messages*/
 };
 
 router.deleteGroupEvent = (req, res) => {
@@ -86,7 +88,7 @@ router.deleteGroupEvent = (req, res) => {
         // If the group event was deleted successfully, send a success message
         .then(() => res.send({message: 'Group event deleted successfully'}))
         // If deleting the group event failed, send error message
-        .catch(err => res.send({message: 'Group event not deleted!', errmsg: err})); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group event not deleted!')); // TODO unify error messages*/
 };
 
 module.exports = router;

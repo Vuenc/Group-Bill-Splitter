@@ -83,7 +83,7 @@ router.getAll = (req, res) => {
           let transactions = calculateTransactions(borrowers, lenders);
           res.send(transactions);
       })
-      .catch(err => res.send(err));
+      .catch(err => respondToError(res, err));
 };
 
 module.exports = router;
