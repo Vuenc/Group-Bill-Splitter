@@ -59,9 +59,9 @@ router.getAll = (req, res) => {
   let groupMembers = null;
 
   // Make sure the group event exists
-  GroupEvent.find({_id: req.params.groupEventId})
-      .then(groupEvent => {
-          if(groupEvent.length === 0)
+  GroupEvent.countDocuments({_id: req.params.groupEventId})
+      .then(groupEventCount => {
+          if(groupEventCount=== 0)
               throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
           return GroupMember.find({groupEventId: req.params.groupEventId});

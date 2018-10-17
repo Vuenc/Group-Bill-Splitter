@@ -12,10 +12,11 @@ router.getAll = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
     // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if(groupEvent.length === 0)
+    GroupEvent.countDocuments({_id: req.params.groupEventId})
+        .then(groupEventCount => {
+            if(groupEventCount === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
+
             return GroupMember.find({groupEventId: req.params.groupEventId});
         })
         // Find all group members and send them
@@ -29,9 +30,9 @@ router.getOne = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
     // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if(groupEvent.length === 0)
+    GroupEvent.countDocuments({_id: req.params.groupEventId})
+        .then(groupEventCount => {
+            if(groupEventCount === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
             return GroupMember.find({_id: req.params.id, groupEventId: req.params.groupEventId});
@@ -51,9 +52,9 @@ router.addGroupMember = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
     // Make sure the group event exists, then add the group member
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if(groupEvent.length === 0)
+    GroupEvent.countDocuments({_id: req.params.groupEventId})
+        .then(groupEventCount => {
+            if(groupEventCount === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
             let groupMember = new GroupMember(req.body);
@@ -78,9 +79,9 @@ router.editGroupMember = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
     // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if (groupEvent.length === 0)
+    GroupEvent.countDocuments({_id: req.params.groupEventId})
+        .then(groupEventCount => {
+            if (groupEventCount === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
             return GroupMember.find({_id: req.params.id, groupEventId: req.params.groupEventId});
@@ -106,9 +107,9 @@ router.deleteGroupMember = (req, res) => {
 
     let groupMember;
     // Make sure the group event exists
-    GroupEvent.find({_id: req.params.groupEventId})
-        .then(groupEvent => {
-            if (groupEvent.length === 0)
+    GroupEvent.countDocuments({_id: req.params.groupEventId})
+        .then(groupEventCount => {
+            if (groupEventCount === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!"};
 
             return GroupMember.find({_id: req.params.id, groupEventId: req.params.groupEventId});

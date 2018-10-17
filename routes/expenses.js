@@ -97,21 +97,22 @@ router.editExpense = (req, res) => {
             if (groupEvent.length === 0)
                 throw {message: "Group event with id " + req.params.groupEventId + " not found!", http_status: 404};
 
-            return GroupMember.find({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId});
+            return GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId});
         })
         // Make sure the paying group member exists
-        .then(payingGroupMember => {
-            if (payingGroupMember.length === 0)
+        .then(payingGroupMemberCount => {
+            if (payingGroupMemberCount === 0)
                 throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
 
-            return GroupMember.find({_id: {$in: req.body.sharingGroupMembers}});
+            return GroupMember.countDocuments({_id: {$in: req.body.sharingGroupMembers}});
         })
         // Make sure the sharing group members exist and have no duplicates
-        .then(sharingGroupMembers => {
-            if (req.body.sharingGroupMembers && sharingGroupMembers.length !== req.body.sharingGroupMembers.length)
+        .then(sharingGroupMembersCount => {
+            if (req.body.sharingGroupMembers && sharingGroupMembersCount !== req.body.sharingGroupMembers.length)
                 throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422}; // TODO unify error messages
 
             return Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId});
+            // return Expense.findOneAndUpdate({_id: req.params.id, groupEventId: req.params.groupEventId}, req.body); // TODO consider this solution
         })
         // Find the expense and edit it
         .then(expense => {
