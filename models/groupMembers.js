@@ -1,4 +1,3 @@
-// TODO good way?
 let mongoose = require('mongoose');
 
 let GroupMemberSchema = new mongoose.Schema({

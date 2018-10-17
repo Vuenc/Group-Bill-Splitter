@@ -4,6 +4,7 @@ let router = express.Router();
 require('../models/mongooseConnection');
 let GroupEvent = require('../models/groupEvents');
 let GroupMember = require('../models/groupMembers');
+let Expense = require('../models/expenses');
 
 router.getAll = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
@@ -101,6 +102,7 @@ router.editGroupMember = (req, res) => {
 router.deleteGroupMember = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
+    let groupMember;
     // Make sure the group event exists
     GroupEvent.find({_id: req.params.groupEventId})
         .then(groupEvent => {
@@ -109,12 +111,21 @@ router.deleteGroupMember = (req, res) => {
 
             return GroupMember.find({_id: req.params.id, groupEventId: req.params.groupEventId});
         })
-        // Find the group member and delete it
-        .then(groupMember => {
-            if(groupMember.length === 0)
+        // Check if the group member exists, and check if there are any expenses depending on this group member
+        .then(_groupMember => {
+            if(_groupMember.length === 0)
                 throw {message: "Group member with id " + req.params.id + " not found!"};
+            groupMember = _groupMember[0];
 
-            return groupMember[0].delete();
+            return Expense.countDocuments({$or: [{payingGroupMember: groupMember._id}, {sharingGroupMembers: {$elemMatch: {$eq: groupMember._id}}}]});
+        })
+        // If there are no dependent expenses, find the group member and delete it
+        .then(count => {
+            if(count > 0)
+                throw {message: "Group member " + req.params.id + " can't be deleted because there are still dependent expenses!"};
+            console.log(groupMember);
+
+            return groupMember.delete();
         })
         // If the group member was deleted successfully, send a success message
         .then(() => res.send({message: 'Group member deleted successfully'}))
