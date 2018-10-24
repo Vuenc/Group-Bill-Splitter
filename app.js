@@ -39,8 +39,10 @@ app.post('/groupEvents/:groupEventId/members', groupMembersRouter.addGroupMember
 app.put('/groupEvents/:groupEventId/members/:id', groupMembersRouter.editGroupMember);
 app.delete('/groupEvents/:groupEventId/members/:id', groupMembersRouter.deleteGroupMember);
 
-app.get('/groupEvents/:groupEventId/expenses', expensesRouter.getAll);
-app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOne);
+app.get('/groupEvents/:groupEventId/expenses', expensesRouter.getAllReferenced);
+app.get('/groupEvents/:groupEventId/expenses-detailed', expensesRouter.getAllNested);
+app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOneReferenced);
+app.get('/groupEvents/:groupEventId/expenses-detailed/:id', expensesRouter.getOneNested);
 app.post('/groupEvents/:groupEventId/expenses', expensesRouter.addExpense);
 app.put('/groupEvents/:groupEventId/expenses/:id', expensesRouter.editExpense);
 app.delete('/groupEvents/:groupEventId/expenses/:id', expensesRouter.deleteExpense);

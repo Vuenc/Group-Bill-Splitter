@@ -31,7 +31,7 @@ calculating the transactions is explained below.
 | Function        | Route | 
 | ------------- | ------------- |
 | Add group event | **POST** /groupEvents |
-| Get list of group events | **GET** /groupEvents |
+| Get list of group events *(only for development, not for final version!)* | **GET** /groupEvents |
 | Get group event | **GET** /groupEvents/:id |
 | Edit group event | **PUT** /groupEvents/:id |
 | Delete group event | **DELETE** /groupEvents/:id |
@@ -52,7 +52,9 @@ calculating the transactions is explained below.
 | ------------- | ------------- |
 | Add an expense | **POST** /groupEvents/:groupEventId/expenses |
 | Get list of expenses | **GET** /groupEvents/:groupEventId/expenses |
+| Get list of expenses with detailed group member data | **GET** /groupEvents/:groupEventId/detailed-expenses |
 | Get expense | **GET** /groupEvents/:groupEventId/expenses/:id |
+| Get expense with detailed group member data | **GET** /groupEvents/:groupEventId/detailed-expenses/:id |
 | Edit expense | **PUT** /groupEvents/:groupEventId/expenses/:id |
 | Delete expense | **DELETE** /groupEvents/:groupEventId/expenses/:id |
 

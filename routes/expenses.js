@@ -10,7 +10,7 @@ let escape_regex = require ('escape-string-regexp');
 let respondToError = require('../lib/helpers').respondToError;
 
 // Gets all expenses (that, if included, match certain search queries)
-router.getAll = (req, res) => {
+function getAll(includeNestedDetails, req, res) {
     res.setHeader('Content-Type', 'application/json');
 
     let findMemberNamesQuery = Promise.resolve();
@@ -51,19 +51,35 @@ router.getAll = (req, res) => {
                 }
             }
 
-            return Expense.find(queryPredicate);
+            // Create 'find' query with optional nested details of group members
+            let findQuery = Expense.find(queryPredicate);
+            if(includeNestedDetails) {
+                return findQuery
+                    .populate('payingGroupMember', 'name _id')
+                    .populate('sharingGroupMembers', 'name _id');
+            }
+            else {
+                return findQuery;
+            }
         })
         // Find all expenses and send them
         .then(expenses => res.send(expenses))
         // If the group event doesn't exist or some other error occurred, send the error
         .catch(err => respondToError(res, err));
-};
+}
 
-router.getOne = (req, res) => {
+function getOne(includeNestedDetails, req, res) {
     res.setHeader('Content-Type', 'application/json');
 
+    // Create 'find' query with optional nested details of group members
+    let findQuery = Expense.find({'groupEventId': req.params.groupEventId, '_id': req.params.id});
+    if(includeNestedDetails) {
+        findQuery.populate('payingGroupMember', 'name _id')
+                 .populate('sharingGroupMembers', 'name _id');
+    }
+
     // Find the expense and send it
-    Expense.find({'groupEventId': req.params.groupEventId, '_id': req.params.id})
+    findQuery
         .then(expense => {
             if (expense.length === 0)
                 throw {message: "Expense with id " + req.params.id + " not found!", http_status: 404};
@@ -72,6 +88,22 @@ router.getOne = (req, res) => {
         })
         // If the group event or expense don't exist or some other error occurred, send the error
         .catch(err => respondToError(res, err));
+}
+
+router.getAllNested = (req, res) => {
+    return getAll(true, req, res);
+};
+
+router.getAllReferenced = (req, res) => {
+    return getAll(false, req, res);
+};
+
+router.getOneNested = (req, res) => {
+    return getOne(true, req, res);
+};
+
+router.getOneReferenced = (req, res) => {
+    return getOne(false, req, res);
 };
 
 router.addExpense = (req, res) => {
