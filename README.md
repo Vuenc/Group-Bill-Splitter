@@ -2,8 +2,11 @@
 This web app is meant for group events with have shared expenses, for example group cooking or holidays:
 The individual members of a group can enter which expenses they had, and the app calculates a list of payments with
 which all the expenses can be settled. This is typically possible with much less payments than would be needed if
-everyone paid everybody else directly the amount they owe them.
+everyone paid everybody else directly the amount they owe them, but it's complicated to calculate this by hand, hence
+this process can be simplified by this app.
 
+[//]: # (TODO: password?)
+ 
 The usage idea is to have a website which lets users create events. The event can be shared with friends by using a
 secret link, optionally protected with a password. Friends can then add expenses and see who has to pay money to who
 in order to settle all expenses.
@@ -13,10 +16,11 @@ The data model is designed around *group events*, which represent events for whi
 number of *group members*, which are represented by their name, and *expenses*. 
 
 An expense consists of the amount of money that was payed, the id of the *paying group member* and a list of 
-*sharing group members*: These can be either all members of the group (represented by the [] value) or a list of ids of
-group members which share the expense among each other. Note that the paying group member doesn't need to be a sharing 
-group member: For example, if Alice pays for Bob's food because he doesn't have cash with him, then Alice could enter
-an expense with herself as the paying and Bob as the only sharing group member.
+*sharing group members*: These can be either all members of the group (represented implicitly by the [] value, in order
+keep consistency when group members are added later) or a list of ids of group members which share the expense among 
+each other. Note that the paying group member does not need to be a sharing group member: For example, if Alice pays for 
+Bob's lunch because he doesn't have cash with him, then Alice could enter an expense with herself as the paying and Bob
+as the only sharing group member.
 Additional, optional data includes a description for the expense and the date it was paid.
 
 ## Routes
@@ -25,8 +29,6 @@ Also, it has a route to calculate a list of transactions which can be used to se
 calculating the transactions is explained below.
 
 ##### Group events:
-
- [//]: # (TODO: list of group events)
 
 | Function        | Route | 
 | ------------- | ------------- |
@@ -52,11 +54,22 @@ calculating the transactions is explained below.
 | ------------- | ------------- |
 | Add an expense | **POST** /groupEvents/:groupEventId/expenses |
 | Get list of expenses | **GET** /groupEvents/:groupEventId/expenses |
-| Get list of expenses with detailed group member data | **GET** /groupEvents/:groupEventId/detailed-expenses |
+| Get list of expenses with detailed group member data | **GET** /groupEvents/:groupEventId/expenses-detailed |
 | Get expense | **GET** /groupEvents/:groupEventId/expenses/:id |
-| Get expense with detailed group member data | **GET** /groupEvents/:groupEventId/detailed-expenses/:id |
+| Get expense with detailed group member data | **GET** /groupEvents/:groupEventId/expenses-detailed/:id |
 | Edit expense | **PUT** /groupEvents/:groupEventId/expenses/:id |
 | Delete expense | **DELETE** /groupEvents/:groupEventId/expenses/:id |
+
+The expense GET route includes search features: in the body, a JSON object with the fields {`memberNameSearch`, 
+`descriptionSearch`, `minDate`, `maxDate`} can be passed. 
+* If the name search string is specified, only expenses where
+the group member name of either the paying group member of one of the sharing group members matches the search string
+are returned. 
+* If the description search string is specified, only expenses where the description matches the search are returned.
+* If minDate and/or maxDate are specified, only expenses within that date range are returned.
+
+Note that the search by member name or description is performed "fuzzy", that means that the search string does not need
+to be an exact match, but only needs to be contained in the name/description to be a match.
 
 ##### Transactions:
 
@@ -102,4 +115,7 @@ For calculating theses transactions, the following algorithm is used:
    until all lenders and borrowers were processed, leading to the desired list of transactions.
    
 ## Git usage and deployment
-The project was version-controlled using git  and uploaded to GitHub as a private repository.
+The project is version-controlled using git and was uploaded to GitHub as a private repository: 
+https://github.com/Vuenc/Group-Bill-Splitter
+
+The server is deployed on Heroku: https://wat2-group-bill-splitter.herokuapp.com/
