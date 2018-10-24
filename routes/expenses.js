@@ -5,16 +5,57 @@ require('../models/mongooseConnection');
 let GroupEvent = require('../models/groupEvents');
 let GroupMember = require('../models/groupMembers');
 let Expense = require('../models/expenses');
+let escape_regex = require ('escape-string-regexp');
 
 let respondToError = require('../lib/helpers').respondToError;
 
+// Gets all expenses (that, if included, match certain search queries)
 router.getAll = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    // Find all expenses and send them
-    Expense.find({'groupEventId': req.params.groupEventId})
+    let findMemberNamesQuery = Promise.resolve();
+
+    // Find the ids of group members that match the given search string
+    if(req.body.memberNameSearch) {
+        // Escape the search string of security resaons to avoid Regex DoS attack
+        findMemberNamesQuery = GroupMember.find({'name': {$regex: escape_regex(req.body.memberNameSearch)}}, 'name')
+    }
+
+    // Execute the findMemberQuery, then construct the expense search query
+    findMemberNamesQuery
+        .then(searchedGroupMemberIds => {
+            // Construct the basic query predicate (will be extended if search parameters were provided)
+            let queryPredicate = {'groupEventId': req.params.groupEventId};
+
+            // If 'memberNameSearch' is provided, search only for expenses where the payingGroupMember's or any of the
+            // explicitly mentioned sharingGroupMembers' names contain the search string
+            if(req.body.memberNameSearch) {
+                queryPredicate['$or'] = [
+                    {'payingGroupMember': {$in: searchedGroupMemberIds}},
+                    {'sharingGroupMembers': {$elemMatch: {$in: searchedGroupMemberIds}}}
+                ];
+            }
+            // If 'descriptionSearch' is provided, search only for expenses with descriptions containing the search string
+            if(req.body.descriptionSearch) {
+                // Escape the search string of security resaons to avoid Regex DoS attack
+                queryPredicate['description'] = {$regex: escape_regex(req.body.descriptionSearch)}
+            }
+            // If 'minDate' or 'maxDate' is provided, search only for expenses within that date range
+            if(req.body.minDate || req.body.maxDate) {
+                queryPredicate['date'] = {};
+                if(req.body.minDate) {
+                    queryPredicate['date']['$gte'] = req.body.minDate;
+                }
+                if(req.body.maxDate) {
+                    queryPredicate['date']['$lte'] = req.body.maxDate;
+                }
+            }
+
+            return Expense.find(queryPredicate);
+        })
+        // Find all expenses and send them
         .then(expenses => res.send(expenses))
-        // If the group event doesn't exist or some other error occured, send the error
+        // If the group event doesn't exist or some other error occurred, send the error
         .catch(err => respondToError(res, err));
 };
 
@@ -29,7 +70,7 @@ router.getOne = (req, res) => {
 
             res.send(expense[0]);
         })
-        // If the group event or expense don't exist or some other error occured, send the error
+        // If the group event or expense don't exist or some other error occurred, send the error
         .catch(err => respondToError(res, err));
 };
 
@@ -63,7 +104,7 @@ router.addExpense = (req, res) => {
         })
         // If the expense was saved successfully, send a success message
         .then(expense => res.send({message: 'Expense added successfully', data: expense}))  // TODO default doesn't work here!
-        // If any of the checks failed or any other error occured, send the error message
+        // If any of the checks failed or any other error occurred, send the error message
         .catch(err => respondToError(res, err, 'Expense not added!')); // TODO unify error messages; status codes
 };
 
@@ -102,12 +143,11 @@ router.editExpense = (req, res) => {
         })
         // If the expense was saved successfully, send a success message
         .then(expense => res.send({message: 'Expense edited successfully', data: expense}))
-        // If any of the checks failed or any other error occured, send the error message
+        // If any of the checks failed or any other error occurred, send the error message
         .catch(err => respondToError(res, err, 'Expense not edited!')); // TODO unify error messages; status codes
 };
 
 router.deleteExpense = (req, res) =>  {
-    // TODO ensure consistency!
     res.setHeader('Content-Type', 'application/json');
 
     // Find the expense and delete it
