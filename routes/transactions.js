@@ -1,4 +1,3 @@
-// TODO consistent tabs/spaces
 let express = require('express');
 let router = express.Router();
 
@@ -7,6 +6,7 @@ let GroupMember = require('../models/groupMembers');
 let Expense = require('../models/expenses');
 let respondToError = require("../lib/helpers").respondToError;
 
+//TODO comments
 function calculateGroupMemberDues(groupMembers, expenses) {
     let groupMemberDues = {};
     for (member of groupMembers) {

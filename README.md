@@ -114,8 +114,29 @@ For calculating theses transactions, the following algorithm is used:
    Similarly, if 'l' advanced more money than `b` still owes, the next borrower is selected. This algorithm continues
    until all lenders and borrowers were processed, leading to the desired list of transactions.
    
-## Git usage and deployment
+## Git usage, deployment and testing
 The project is version-controlled using git and was uploaded to GitHub as a private repository: 
 https://github.com/Vuenc/Group-Bill-Splitter
 
 The server is deployed on Heroku: https://wat2-group-bill-splitter.herokuapp.com/
+The mongoDB database is deployed on mlab. The credentials for the mlab account are passed by environment variable
+(which can be simulated with an .env and the dotenv package file).
+
+The server was tested using the REST client Insomnia, where multiple routes can be stored to simplify testing.
+
+## References
+1. Mongoose documentation, including https://mongoosejs.com/docs/queries.html,
+ https://mongoosejs.com/docs/middleware.html, https://mongoosejs.com/docs/promises.html
+2. MongoDB documentation, including https://docs.mongodb.com/manual/core/data-model-design/,
+ https://docs.mongodb.com/manual/reference/operator/query/in/, 
+ https://docs.mongodb.com/manual/reference/operator/query/elemMatch/,
+3. http://erikaybar.name/using-es6-promises-with-mongoosejs-queries/ about promise-like .then() functions in mongoose
+ queries
+4. https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/mongoose about mongoose
+5. https://www.npmjs.com/package/dotenv about the doetenv package
+6. https://stackoverflow.com/questions/3446170/escape-string-for-use-in-javascript-regex, answer by CoolAJ86 who
+ provides a node package for escaping regex input strings
+7. https://developer.mozilla.org/en-US/docs/Web/HTTP/Status, https://en.wikipedia.org/wiki/List_of_HTTP_status_codes 
+ about HTTP status codes
+8. https://github.com/github/gitignore/blob/master/Node.gitignore for the .gitignore template for Node.js
+9. https://mrcoles.com/javascript-promises-and-errors/ about promises

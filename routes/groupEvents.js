@@ -39,7 +39,7 @@ router.addGroupEvent = (req, res) => {
     .then(() => {
         let groupEvent = new GroupEvent(req.body);
 
-        /*
+        /* TODO
         groupEvent.name = req.body.name;
         groupEvent.currencyPrefix = req.body.currencyPrefix;
         */
@@ -73,8 +73,8 @@ router.editGroupEvent = (req, res) => {
         .catch(err => respondToError(res, err, 'Group event not edited!')); // TODO unify error messages*/
 };
 
+// Consistency (deleting all contents) is ensured through a post hook in the GroupEvent model
 router.deleteGroupEvent = (req, res) => {
-    // TODO ensure consistency (delete all contents)
     res.setHeader('Content-Type', 'application/json');
 
     // Find the group event and delete it

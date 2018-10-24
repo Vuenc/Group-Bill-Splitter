@@ -2,7 +2,6 @@ let express = require('express');
 let router = express.Router();
 
 require('../models/mongooseConnection');
-let GroupEvent = require('../models/groupEvents');
 let GroupMember = require('../models/groupMembers');
 let Expense = require('../models/expenses');
 let escape_regex = require ('escape-string-regexp');

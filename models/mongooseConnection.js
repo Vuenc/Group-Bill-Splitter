@@ -1,4 +1,5 @@
-// Snippet adapted from the dotenv documentation to ensure that values from .env file are not shadowed by global environment variables
+// Snippet adapted from the dotenv documentation to ensure that values from .env file are not shadowed by global
+// environment variables - not in use now because of Heroku deployment
 const fs = require('fs');
 const dotenv = require('dotenv')
     .config(); // Needed to load local variables automatically
