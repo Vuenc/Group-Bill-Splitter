@@ -46,7 +46,7 @@ router.addGroupMember = (req, res) => {
             res.send({message: 'Group member added successfully', data: groupMember});
         })
         // If the group event doesn't exist or saving failed, send error message
-        .catch(err => respondToError(res, err, 'Group member not added!')); // TODO send different response code; unify message format
+        .catch(err => respondToError(res, err, 'Group member not added!'));
 };
 
 router.editGroupMember = (req, res) => {
@@ -92,7 +92,7 @@ router.deleteGroupMember = (req, res) => {
         // If the group member was deleted successfully, send a success message
         .then(() => res.send({message: 'Group member deleted successfully'}))
         // If the group event or group member don't exist or deleting failed, send error message
-        .catch(err => respondToError(res, err, 'Group member not deleted!')); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group member not deleted!'));
 };
 
 module.exports = router;

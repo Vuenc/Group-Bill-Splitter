@@ -23,11 +23,11 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter); // TODO ?
+app.use('/', indexRouter);
 
 app.all('/groupEvents/:groupEventId/*', groupEventsRouter.verifyExists); // TODO :..*?
 
-app.get('/groupEvents', groupEventsRouter.getAll); // TODO remove this route?
+app.get('/groupEvents', groupEventsRouter.getAll); // TODO remove this route at some point (only included for development)
 app.get('/groupEvents/:id', groupEventsRouter.getOne);
 app.post('/groupEvents', groupEventsRouter.addGroupEvent);
 app.put('/groupEvents/:id', groupEventsRouter.editGroupEvent);
@@ -49,8 +49,6 @@ app.delete('/groupEvents/:groupEventId/expenses/:id', expensesRouter.deleteExpen
 
 app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAllReferenced);
 app.get('/groupEvents/:groupEventId/transactions-detailed', transactionsRouter.getAllNested);
-
-// TODO add more routes
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

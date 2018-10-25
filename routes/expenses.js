@@ -119,24 +119,17 @@ router.addExpense = (req, res) => {
         // Make sure the sharing group members exist and have no duplicates, then add the expense
         .then(sharingGroupMembers => {
           if (req.body.sharingGroupMembers && sharingGroupMembers.length !== req.body.sharingGroupMembers.length)
-              throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422}; // TODO unify error messages
+              throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
 
-          // TODO validate data
           let expense = new Expense(req.body);
           expense.groupEventId = req.params.groupEventId;
-          /*
-          expense.payingGroupMember = req.body.payingGroupMember;
-          expense.amount = req.body.amount;
-          expense.date = req.body.date;
-          expense.description = req.body.description;
-          expense.sharingGroupMembers = req.body.sharingGroupMembers;
-          */
+
           return expense.save();
         })
         // If the expense was saved successfully, send a success message
-        .then(expense => res.send({message: 'Expense added successfully', data: expense}))  // TODO default doesn't work here!
+        .then(expense => res.send({message: 'Expense added successfully', data: expense}))
         // If any of the checks failed or any other error occurred, send the error message
-        .catch(err => respondToError(res, err, 'Expense not added!')); // TODO unify error messages; status codes
+        .catch(err => respondToError(res, err, 'Expense not added!'));
 };
 
 router.editExpense = (req, res) => {
@@ -152,10 +145,9 @@ router.editExpense = (req, res) => {
         // Make sure the sharing group members exist and have no duplicates
         .then(sharingGroupMembersCount => {
             if (req.body.sharingGroupMembers && sharingGroupMembersCount !== req.body.sharingGroupMembers.length)
-                throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422}; // TODO unify error messages
+                throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
 
             return Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId});
-            // return Expense.findOneAndUpdate({_id: req.params.id, groupEventId: req.params.groupEventId}, req.body); // TODO consider this solution
         })
         // Find the expense and edit it
         .then(expense => {
@@ -163,7 +155,6 @@ router.editExpense = (req, res) => {
                 throw {message: "Expense with id " + req.params.id + " not found!", http_status: 404};
             expense = expense[0];
 
-            // TODO inconsistent with/more complicated than add code
             expense.payingGroupMember = req.body.payingGroupMember;
             expense.amount = req.body.amount;
             expense.date = req.body.date;
@@ -175,7 +166,7 @@ router.editExpense = (req, res) => {
         // If the expense was saved successfully, send a success message
         .then(expense => res.send({message: 'Expense edited successfully', data: expense}))
         // If any of the checks failed or any other error occurred, send the error message
-        .catch(err => respondToError(res, err, 'Expense not edited!')); // TODO unify error messages; status codes
+        .catch(err => respondToError(res, err, 'Expense not edited!'));
 };
 
 router.deleteExpense = (req, res) =>  {
@@ -192,7 +183,7 @@ router.deleteExpense = (req, res) =>  {
         // If the expense was deleted successfully, send a success message
         .then(expense => res.send({message: 'Expense deleted successfully', data: expense}))
         // If the group event doesn't exist or deleting the expense failed, send error message
-        .catch(err => respondToError(res, err, 'Expense not deleted!')); // TODO unify error messages; status codes
+        .catch(err => respondToError(res, err, 'Expense not deleted!'));
 };
 
 module.exports = router;

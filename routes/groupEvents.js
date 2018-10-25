@@ -13,7 +13,7 @@ router.getAll = (req, res) => {
     GroupEvent.find()
         .then(groupEvents => res.send(groupEvents))
         // If any error occured, send the error
-        .catch(err => respondToError(res, err)); // TODO JSON.stringify?
+        .catch(err => respondToError(res, err));
 };
 
 router.getOne = (req, res) => {
@@ -28,28 +28,19 @@ router.getOne = (req, res) => {
             res.send(groupEvent[0]);
         })
         // If the group event doesn't exist or any other eror occured, send the error
-        .catch(err => respondToError(res, err));  // TODO JSON.stringify?
+        .catch(err => respondToError(res, err));
 };
 
 router.addGroupEvent = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    // TODO promise chain still necessary?
-    Promise.resolve() // Start off promise chain, in order to handle all errors in .catch(...)
-    .then(() => {
-        let groupEvent = new GroupEvent(req.body);
+    let groupEvent = new GroupEvent(req.body);
 
-        /* TODO
-        groupEvent.name = req.body.name;
-        groupEvent.currencyPrefix = req.body.currencyPrefix;
-        */
-
-        return groupEvent.save();
-    })
-    // If the group event was saved successfully, send a success message
-    .then(groupEvent => res.send({message: 'Group event added successfully', data: groupEvent}))
-    // If the group event could not be saved, send the error
-    .catch(err => respondToError(res, err, 'Group event not added!')); // TODO unify error messages*/
+    return groupEvent.save()
+        // If the group event was saved successfully, send a success message
+        .then(groupEvent => res.send({message: 'Group event added successfully', data: groupEvent}))
+        // If the group event could not be saved, send the error
+        .catch(err => respondToError(res, err, 'Group event not added!'));
 };
 
 router.editGroupEvent = (req, res) => {
@@ -70,7 +61,7 @@ router.editGroupEvent = (req, res) => {
         // If the group event was saved successfully, send a success message
         .then(groupEvent => res.send({message: 'Group event edited successfully', data: groupEvent}))
         // If the group event could not be saved, send the error
-        .catch(err => respondToError(res, err, 'Group event not edited!')); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group event not edited!'));
 };
 
 // Consistency (deleting all contents) is ensured through a post hook in the GroupEvent model
@@ -88,7 +79,7 @@ router.deleteGroupEvent = (req, res) => {
         // If the group event was deleted successfully, send a success message
         .then(() => res.send({message: 'Group event deleted successfully'}))
         // If deleting the group event failed, send error message
-        .catch(err => respondToError(res, err, 'Group event not deleted!')); // TODO unify error messages*/
+        .catch(err => respondToError(res, err, 'Group event not deleted!'));
 };
 
 router.verifyExists = (req, res, next) => {

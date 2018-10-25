@@ -6,7 +6,6 @@ let Expense = require('./expenses');
 let GroupEventSchema = new mongoose.Schema({
         name: {type: String, required: true},
         currencyPrefix: {type: String, default: "€ "},
-        // groupMembers: [mongoose.Schema.Types.ObjectId], // TODO best way to do this?
     },
     {
         collection: 'groupeventsdb'

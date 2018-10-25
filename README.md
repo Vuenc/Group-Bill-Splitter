@@ -4,8 +4,6 @@ The individual members of a group can enter which expenses they had, and the app
 which all the expenses can be settled. This is typically possible with much less payments than would be needed if
 everyone paid everybody else directly the amount they owe them, but it's complicated to calculate this by hand, hence
 this process can be simplified by this app.
-
-[//]: # (TODO: password?)
  
 The usage idea is to have a website which lets users create events. The event can be shared with friends by using a
 secret link. Friends can then add expenses and see who has to pay money to who in order to settle all expenses.
