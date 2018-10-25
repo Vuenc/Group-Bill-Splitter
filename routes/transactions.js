@@ -6,54 +6,77 @@ let GroupMember = require('../models/groupMembers');
 let Expense = require('../models/expenses');
 let respondToError = require("../lib/helpers").respondToError;
 
-//TODO comments
+// Sums all the expenses to calculate which group member owes/advanced how much in total
 function calculateGroupMemberDues(groupMembers, expenses) {
+    // groupMemberDues is a dictionary where the dues are calculated
     let groupMemberDues = {};
+    // Initialize groupMemberDues
     for (member of groupMembers) {
-        groupMemberDues[member._id] = 0; // TODO correctly calculating with decimals?
+        groupMemberDues[member._id] = {member: member, amount: 0};
     }
+
+    // Split each expense to the group members who share it
     for (expense of expenses) {
+        // Get the members who share the expense ([] is interpreted as everybody in the group)
         let expenseSharingMembers = expense.sharingGroupMembers.length > 0
-            ? expense.sharingGroupMembers : groupMembers.map(m => m._id); // TODO necessary?
+            ? expense.sharingGroupMembers : groupMembers.map(m => m._id);
         let amount = Number(expense.amount);
         for (member of expenseSharingMembers) {
-            groupMemberDues[member] -= amount / expenseSharingMembers.length;
+            // For every sharing group member: count his part as dues (negative)
+            groupMemberDues[member].amount -= amount / expenseSharingMembers.length;
         }
-        groupMemberDues[expense.payingGroupMember] += amount;
+        // For the paying group member: count the amount as advanced money (positive)
+        groupMemberDues[expense.payingGroupMember].amount += amount;
     }
     return groupMemberDues;
 }
 
+// Split the group into people who advanced money (lenders) and people who owe money (borrowers) in total
 function calculateLendersBorrowers(groupMemberDues) {
-    let groupMemberDuesArray = Object.keys(groupMemberDues).map(k => ({id: k, amount: groupMemberDues[k]}));
-    let lenders = groupMemberDuesArray.filter(m => m.amount > 0);
-    let borrowers = groupMemberDuesArray.filter(m => m.amount < 0).map(b => ({id: b.id, amount: b.amount * -1}));
+    let groupMemberDuesArray = Object.keys(groupMemberDues).map(id => groupMemberDues[id]);
+    let lenders = groupMemberDuesArray .filter(m => m.amount > 0);
+    let borrowers = groupMemberDuesArray .filter(m => m.amount < 0).map(b => ({member: b.member, amount: b.amount * -1}));
     return {lenders, borrowers};
 }
 
-function calculateTransactions(borrowers, lenders) {
+// Calculate the transactions necessary to settle the debts (see README.md for explanation of the algorithm)
+function calculateTransactions(borrowers, lenders, includeNestedDetails) {
     let transactions = [];
 
     let lenderIndex = 0;
     for (borrower of borrowers) {
         while (lenderIndex < lenders.length && lenders[lenderIndex].amount <= borrower.amount) {
-            transactions.push({
-                source: borrower.id,
-                target: lenders[lenderIndex].id,
-                amount: lenders[lenderIndex].amount
-            });
+            transactions.push(
+                getTransactionObject(borrower, lenders[lenderIndex], lenders[lenderIndex].amount, includeNestedDetails));
             borrower.amount -= lenders[lenderIndex].amount;
             lenderIndex++;
         }
         if (borrower.amount !== 0 && lenderIndex < lenders.length) {
-            transactions.push({source: borrower.id, target: lenders[lenderIndex].id, amount: borrower.amount});
+            transactions.push(getTransactionObject(borrower, lenders[lenderIndex], borrower.amount, includeNestedDetails));
             lenders[lenderIndex].amount -= borrower.amount;
         }
     }
     return transactions;
 }
 
-router.getAll = (req, res) => {
+function getTransactionObject(borrower, lender, amount, includeNestedDetails) {
+    if(includeNestedDetails) {
+        return {
+            source: {_id: borrower.member._id, name: borrower.member.name},
+            target: {_id: lender.member._id, name: lender.member.name},
+            amount: amount
+        };
+    }
+    else {
+        return {
+            source: borrower.member._id,
+            target: lender.member._id,
+            amount: amount
+        };
+    }
+}
+
+function getAll(includeNestedDetails, req, res) {
     res.setHeader('Content-Type', 'application/json');
 
     let groupMembers;
@@ -73,10 +96,18 @@ router.getAll = (req, res) => {
           let {lenders, borrowers} = calculateLendersBorrowers(groupMemberDues);
 
           // Calculate a list of transactions
-          let transactions = calculateTransactions(borrowers, lenders);
+          let transactions = calculateTransactions(borrowers, lenders, includeNestedDetails);
           res.send(transactions);
         })
         .catch(err => respondToError(res, err));
+}
+
+router.getAllNested = (req, res) => {
+    return getAll(true, req, res);
+};
+
+router.getAllReferenced = (req, res) => {
+    return getAll(false, req, res);
 };
 
 module.exports = router;

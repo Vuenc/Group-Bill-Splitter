@@ -8,8 +8,7 @@ this process can be simplified by this app.
 [//]: # (TODO: password?)
  
 The usage idea is to have a website which lets users create events. The event can be shared with friends by using a
-secret link, optionally protected with a password. Friends can then add expenses and see who has to pay money to who
-in order to settle all expenses.
+secret link. Friends can then add expenses and see who has to pay money to who in order to settle all expenses.
 
 ## Data model
 The data model is designed around *group events*, which represent events for which expenses are shared. Each event has a
@@ -76,6 +75,7 @@ to be an exact match, but only needs to be contained in the name/description to 
 | Function        | Route | 
 | ------------- | ------------- |
 | Get list of transactions | **GET** /groupEvents/:groupEventId/transactions |
+| Get list of transactions with detailed group member data | **GET** /groupEvents/:groupEventId/transactions-detailed |
 
 ## Persistence with mongoDB
 

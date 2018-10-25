@@ -47,7 +47,8 @@ app.post('/groupEvents/:groupEventId/expenses', expensesRouter.addExpense);
 app.put('/groupEvents/:groupEventId/expenses/:id', expensesRouter.editExpense);
 app.delete('/groupEvents/:groupEventId/expenses/:id', expensesRouter.deleteExpense);
 
-app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAll);
+app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAllReferenced);
+app.get('/groupEvents/:groupEventId/transactions-detailed', transactionsRouter.getAllNested);
 
 // TODO add more routes
 
