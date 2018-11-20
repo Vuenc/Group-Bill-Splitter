@@ -7,8 +7,7 @@ const envConfig = process.env;
     // Way to do load environment variables only from local file: = dotenv.parse(fs.readFileSync('.env'));
 const mongoose = require('mongoose');
 
-let mongodbUri = 'mongodb://' + envConfig.GBS_MLAB_DB_USER
-    + ':' + envConfig.GBS_MLAB_DB_PASSWORD + '@ds223253.mlab.com:23253/' + envConfig.GBS_MLAB_DB_NAME;
+let mongodbUri = 'mongodb://' + envConfig.GBS_MONGODB_URI;
 
 mongoose.connect(mongodbUri, {useNewUrlParser: true});
 let db = mongoose.connection;
