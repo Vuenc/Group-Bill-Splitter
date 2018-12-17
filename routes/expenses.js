@@ -54,8 +54,8 @@ function getAll(includeNestedDetails, req, res) {
             let findQuery = Expense.find(queryPredicate);
             if(includeNestedDetails) {
                 return findQuery
-                    .populate('payingGroupMember', 'name _id')
-                    .populate('sharingGroupMembers', 'name _id');
+                    .populate('payingGroupMember', 'name email _id')
+                    .populate('sharingGroupMembers', 'name email _id');
             }
             else {
                 return findQuery;
@@ -73,8 +73,8 @@ function getOne(includeNestedDetails, req, res) {
     // Create 'find' query with optional nested details of group members
     let findQuery = Expense.find({'groupEventId': req.params.groupEventId, '_id': req.params.id});
     if(includeNestedDetails) {
-        findQuery.populate('payingGroupMember', 'name _id')
-                 .populate('sharingGroupMembers', 'name _id');
+        findQuery.populate('payingGroupMember', 'name email _id')
+                 .populate('sharingGroupMembers', 'name email _id');
     }
 
     // Find the expense and send it

@@ -62,8 +62,8 @@ function calculateTransactions(borrowers, lenders, includeNestedDetails) {
 function getTransactionObject(borrower, lender, amount, includeNestedDetails) {
     if(includeNestedDetails) {
         return {
-            source: {_id: borrower.member._id, name: borrower.member.name},
-            target: {_id: lender.member._id, name: lender.member.name},
+            source: {_id: borrower.member._id, name: borrower.member.name, email: borrower.member.email},
+            target: {_id: lender.member._id, name: lender.member.name, email: lender.member.email},
             amount: amount
         };
     }
