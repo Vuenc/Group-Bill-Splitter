@@ -60,6 +60,7 @@ router.editGroupMember = (req, res) => {
             groupMember = groupMember[0];
 
             groupMember.name = req.body.name;
+            groupMember.email = req.body.email;
 
             return groupMember.save();
         })
