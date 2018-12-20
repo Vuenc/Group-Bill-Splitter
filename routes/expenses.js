@@ -14,10 +14,12 @@ function getAll(includeNestedDetails, req, res) {
 
     let findMemberNamesQuery = Promise.resolve();
 
+    let query = req.query;
+
     // Find the ids of group members that match the given search string
-    if(req.body.memberNameSearch) {
+    if(query.memberNameSearch) {
         // Escape the search string of security resaons to avoid Regex DoS attack
-        findMemberNamesQuery = GroupMember.find({'name': {$regex: escape_regex(req.body.memberNameSearch)}}, 'name')
+        findMemberNamesQuery = GroupMember.find({'name': {$regex: escape_regex(query.memberNameSearch)}}, 'name')
     }
 
     // Execute the findMemberQuery, then construct the expense search query
@@ -28,25 +30,25 @@ function getAll(includeNestedDetails, req, res) {
 
             // If 'memberNameSearch' is provided, search only for expenses where the payingGroupMember's or any of the
             // explicitly mentioned sharingGroupMembers' names contain the search string
-            if(req.body.memberNameSearch) {
+            if(query.memberNameSearch) {
                 queryPredicate['$or'] = [
                     {'payingGroupMember': {$in: searchedGroupMemberIds}},
                     {'sharingGroupMembers': {$elemMatch: {$in: searchedGroupMemberIds}}}
                 ];
             }
             // If 'descriptionSearch' is provided, search only for expenses with descriptions containing the search string
-            if(req.body.descriptionSearch) {
+            if(query.descriptionSearch) {
                 // Escape the search string of security resaons to avoid Regex DoS attack
-                queryPredicate['description'] = {$regex: escape_regex(req.body.descriptionSearch)}
+                queryPredicate['description'] = {$regex: escape_regex(query.descriptionSearch)}
             }
             // If 'minDate' or 'maxDate' is provided, search only for expenses within that date range
-            if(req.body.minDate || req.body.maxDate) {
+            if(query.minDate || query.maxDate) {
                 queryPredicate['date'] = {};
-                if(req.body.minDate) {
-                    queryPredicate['date']['$gte'] = req.body.minDate;
+                if(query.minDate) {
+                    queryPredicate['date']['$gte'] = query.minDate;
                 }
-                if(req.body.maxDate) {
-                    queryPredicate['date']['$lte'] = req.body.maxDate;
+                if(query.maxDate) {
+                    queryPredicate['date']['$lte'] = query.maxDate;
                 }
             }
 
@@ -74,7 +76,7 @@ function getOne(includeNestedDetails, req, res) {
     let findQuery = Expense.find({'groupEventId': req.params.groupEventId, '_id': req.params.id});
     if(includeNestedDetails) {
         findQuery.populate('payingGroupMember', 'name email _id')
-                 .populate('sharingGroupMembers', 'name email _id');
+            .populate('sharingGroupMembers', 'name email _id');
     }
 
     // Find the expense and send it
@@ -111,20 +113,20 @@ router.addExpense = (req, res) => {
     // Make sure the paying group member exists
     GroupMember.find({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
         .then(payingGroupMember => {
-          if (payingGroupMember.length === 0)
-              throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
+            if (payingGroupMember.length === 0)
+                throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
 
-          return GroupMember.find({_id: {$in: req.body.sharingGroupMembers}});
+            return GroupMember.find({_id: {$in: req.body.sharingGroupMembers}});
         })
         // Make sure the sharing group members exist and have no duplicates, then add the expense
         .then(sharingGroupMembers => {
-          if (req.body.sharingGroupMembers && sharingGroupMembers.length !== req.body.sharingGroupMembers.length)
-              throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
+            if (req.body.sharingGroupMembers && sharingGroupMembers.length !== req.body.sharingGroupMembers.length)
+                throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
 
-          let expense = new Expense(req.body);
-          expense.groupEventId = req.params.groupEventId;
+            let expense = new Expense(req.body);
+            expense.groupEventId = req.params.groupEventId;
 
-          return expense.save();
+            return expense.save();
         })
         // If the expense was saved successfully, send a success message
         .then(expense => res.send({message: 'Expense added successfully', data: expense}))
