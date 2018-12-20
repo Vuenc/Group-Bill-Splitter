@@ -28,27 +28,39 @@ function getAll(includeNestedDetails, req, res) {
             // Construct the basic query predicate (will be extended if search parameters were provided)
             let queryPredicate = {'groupEventId': req.params.groupEventId};
 
+            // List of search queries which will either be connected by $and or by $or
+            queryList = []
+
             // If 'memberNameSearch' is provided, search only for expenses where the payingGroupMember's or any of the
             // explicitly mentioned sharingGroupMembers' names contain the search string
             if(query.memberNameSearch) {
-                queryPredicate['$or'] = [
+                queryList.push({'$or': [
                     {'payingGroupMember': {$in: searchedGroupMemberIds}},
                     {'sharingGroupMembers': {$elemMatch: {$in: searchedGroupMemberIds}}}
-                ];
+                ]});
             }
             // If 'descriptionSearch' is provided, search only for expenses with descriptions containing the search string
             if(query.descriptionSearch) {
                 // Escape the search string of security resaons to avoid Regex DoS attack
-                queryPredicate['description'] = {$regex: escape_regex(query.descriptionSearch)}
+                queryList.push({'description': {$regex: escape_regex(query.descriptionSearch)}})
             }
             // If 'minDate' or 'maxDate' is provided, search only for expenses within that date range
             if(query.minDate || query.maxDate) {
-                queryPredicate['date'] = {};
+                let datePredicate = {}
                 if(query.minDate) {
-                    queryPredicate['date']['$gte'] = query.minDate;
+                    datePredicate['date']['$gte'] = query.minDate;
                 }
                 if(query.maxDate) {
-                    queryPredicate['date']['$lte'] = query.maxDate;
+                    datePredicate['date']['$lte'] = query.maxDate;
+                }
+                queryPredicate['date'] = datePredicate
+            }
+
+            if(queryList.length > 0) {
+                if(query.or === 'true') {
+                    queryPredicate['$or'] = queryList
+                } else {
+                    queryPredicate['$and'] = queryList
                 }
             }
 
