@@ -48,10 +48,10 @@ function getAll(includeNestedDetails, req, res) {
             if(query.minDate || query.maxDate) {
                 let datePredicate = {}
                 if(query.minDate) {
-                    datePredicate['date']['$gte'] = query.minDate;
+                    datePredicate['$gte'] = query.minDate;
                 }
                 if(query.maxDate) {
-                    datePredicate['date']['$lte'] = query.maxDate;
+                    datePredicate['$lte'] = query.maxDate;
                 }
                 queryPredicate['date'] = datePredicate
             }
