@@ -11,6 +11,7 @@ const groupEventsRouter = require('./routes/groupEvents');
 const groupMembersRouter = require('./routes/groupMembers');
 const expensesRouter = require('./routes/expenses');
 const transactionsRouter = require('./routes/transactions');
+const costsRouter = require('./routes/costs');
 
 let app = express();
 
@@ -50,6 +51,8 @@ app.delete('/groupEvents/:groupEventId/expenses/:id', expensesRouter.deleteExpen
 
 app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAllReferenced);
 app.get('/groupEvents/:groupEventId/transactions-detailed', transactionsRouter.getAllNested);
+
+app.get('/groupEvents/:groupEventId/costs', costsRouter.getAll);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
