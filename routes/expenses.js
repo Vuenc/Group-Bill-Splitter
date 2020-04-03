@@ -8,6 +8,10 @@ let escape_regex = require ('escape-string-regexp');
 
 let respondToError = require('../lib/helpers').respondToError;
 
+function caseInsensitiveEscapedRegex(searchString) {
+    return new RegExp(escape_regex(searchString.toLowerCase()), "i")
+}
+
 // Gets all expenses (that, if included, match certain search queries)
 function getAll(includeNestedDetails, req, res) {
     res.setHeader('Content-Type', 'application/json');
@@ -19,8 +23,8 @@ function getAll(includeNestedDetails, req, res) {
     // Find the ids of group members that match the given search string
     if(query.memberNameSearch) {
         // Escape the search string of security resaons to avoid Regex DoS attack
-        findMemberNamesQuery = GroupMember.find({'name': {$regex: escape_regex(query.memberNameSearch)},
-                'groupEventId': req.params.groupEventId}, 'name')
+        findMemberNamesQuery = GroupMember.find({'groupEventId': req.params.groupEventId,
+            'name': {$regex: caseInsensitiveEscapedRegex(query.memberNameSearch)}}, 'name')
     }
 
     // Execute the findMemberQuery, then construct the expense search query
@@ -43,7 +47,7 @@ function getAll(includeNestedDetails, req, res) {
             // If 'descriptionSearch' is provided, search only for expenses with descriptions containing the search string
             if(query.descriptionSearch) {
                 // Escape the search string of security resaons to avoid Regex DoS attack
-                queryList.push({'description': {$regex: escape_regex(query.descriptionSearch)}})
+                queryList.push({'description': {$regex: caseInsensitiveEscapedRegex(query.descriptionSearch)}})
             }
             // If 'minDate' or 'maxDate' is provided, search only for expenses within that date range
             if(query.minDate || query.maxDate) {
