@@ -19,7 +19,8 @@ function getAll(includeNestedDetails, req, res) {
     // Find the ids of group members that match the given search string
     if(query.memberNameSearch) {
         // Escape the search string of security resaons to avoid Regex DoS attack
-        findMemberNamesQuery = GroupMember.find({'name': {$regex: escape_regex(query.memberNameSearch)}}, 'name')
+        findMemberNamesQuery = GroupMember.find({'name': {$regex: escape_regex(query.memberNameSearch)},
+                'groupEventId': req.params.groupEventId}, 'name')
     }
 
     // Execute the findMemberQuery, then construct the expense search query
