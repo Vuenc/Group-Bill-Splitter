@@ -6,16 +6,6 @@ let GroupEvent = require('../models/groupEvents');
 
 let respondToError = require('../lib/helpers').respondToError;
 
-router.getAll = (req, res) => {
-    res.setHeader('Content-Type', 'application/json');
-
-    // Find all group events and send them
-    GroupEvent.find()
-        .then(groupEvents => res.send(groupEvents))
-        // If any error occured, send the error
-        .catch(err => respondToError(res, err));
-};
-
 router.getOne = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 

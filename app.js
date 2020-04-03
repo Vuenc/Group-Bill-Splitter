@@ -29,7 +29,6 @@ app.use('/', indexRouter);
 
 app.all('/groupEvents/:groupEventId/*', groupEventsRouter.verifyExists); // TODO :..*?
 
-app.get('/groupEvents', groupEventsRouter.getAll); // TODO remove this route at some point (only included for development)
 app.get('/groupEvents/:id', groupEventsRouter.getOne);
 app.post('/groupEvents', groupEventsRouter.addGroupEvent);
 app.put('/groupEvents/:id', groupEventsRouter.editGroupEvent);
