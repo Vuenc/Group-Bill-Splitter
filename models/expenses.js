@@ -6,7 +6,9 @@ let ExpenseSchema = new mongoose.Schema({
         payingGroupMember: {type: mongoose.Schema.Types.ObjectId, required: true, ref: 'GroupMember'},
         date: {type: Date, default: null},
         description: {type: String, default: null},
-        sharingGroupMembers: {type: [{type: mongoose.Schema.Types.ObjectId, ref: 'GroupMember'}], default: []}
+        sharingGroupMembers: {type: [{type: mongoose.Schema.Types.ObjectId, ref: 'GroupMember'}], default: []},
+        isDirectPayment: {type: Boolean, default: false},
+        schema_version: {type: String, default: "1"} // Schema version 2: added (isDirectPayment: Boolean) field
     },
     {
         collection: 'expensesdb'

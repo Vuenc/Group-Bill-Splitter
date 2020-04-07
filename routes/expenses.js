@@ -179,6 +179,7 @@ router.editExpense = (req, res) => {
             expense.date = req.body.date;
             expense.description = req.body.description;
             expense.sharingGroupMembers = req.body.sharingGroupMembers;
+            expense.isDirectPayment = req.body.isDirectPayment;
 
             return expense.save();
         })
