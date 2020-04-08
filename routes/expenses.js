@@ -142,6 +142,7 @@ router.addExpense = (req, res) => {
 
             let expense = new Expense(req.body);
             expense.groupEventId = req.params.groupEventId;
+            expense.schemaVersion = "2";
 
             return expense.save();
         })
@@ -180,6 +181,7 @@ router.editExpense = (req, res) => {
             expense.description = req.body.description;
             expense.sharingGroupMembers = req.body.sharingGroupMembers;
             expense.isDirectPayment = req.body.isDirectPayment;
+            expense.schemaVersion = "2";
 
             return expense.save();
         })
