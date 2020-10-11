@@ -11,10 +11,10 @@
     "debug": "~2.6.9",
     "dotenv": "^6.0.0",
     "ejs": "~2.5.7",
-    "escape-string-regexp": "latest",
+    "escape-string-regexp": "^4.0.0",
     "express": "~4.16.0",
     "http-errors": "~1.6.2",
-    "mongoose": "^5.3.1",
+    "mongoose": "^5.10.9",
     "morgan": "~1.9.0"
   }
 }
