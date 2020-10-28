@@ -40,7 +40,7 @@ router.getAll = (req, res) => {
         // Find all group members in the group event
         .then(_groupMembers => {
             groupMembers = _groupMembers;
-            return Expense.find({groupEventId: req.params.groupEventId, isDirectPayment: {$not: true}});
+            return Expense.find({groupEventId: req.params.groupEventId, isDirectPayment: {$ne: true}});
         })
         // Find all expenses in the group event and calculate the costs
         .then(expenses => {
