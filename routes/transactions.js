@@ -17,13 +17,28 @@ function calculateGroupMemberDues(groupMembers, expenses) {
 
     // Split each expense to the group members who share it
     for (expense of expenses) {
-        // Get the members who share the expense ([] is interpreted as everybody in the group)
-        let expenseSharingMembers = expense.sharingGroupMembers.length > 0
-            ? expense.sharingGroupMembers : groupMembers.map(m => m._id);
         let amount = Number(expense.amount);
-        for (member of expenseSharingMembers) {
-            // For every sharing group member: count his part as dues (negative)
-            groupMemberDues[member].amount -= amount / expenseSharingMembers.length;
+        // If expense is shared evenly between all / some group members
+        if (!expense.proportionalSplitting) {
+            // Get the members who share the expense ([] is interpreted as everybody in the group)
+            let expenseSharingMembers = expense.sharingGroupMembers.length > 0
+                ? expense.sharingGroupMembers : groupMembers.map(m => m._id);
+            for (member of expenseSharingMembers) {
+                // For every sharing group member: count his part as dues (negative)
+                groupMemberDues[member].amount -= amount / expenseSharingMembers.length;
+            }
+        }
+        // If expense is split proportionally based on percentages
+        else if (expense.proportionalSplitting.splitType === 'percentages') {
+            for (percentageInfo of expense.proportionalSplitting.percentages) {
+                groupMemberDues[percentageInfo.groupMember].amount -= amount * percentageInfo.percentage;
+            }
+        }
+        // If expense is split proportionally based on amounts
+        else if (expense.proportionalSplitting.splitType === 'amount') {
+            for (amountInfo of expense.proportionalSplitting.amounts) {
+                groupMemberDues[percentageInfo.groupMember].amount -= amountInfo.amount;
+            }
         }
         // For the paying group member: count the amount as advanced money (positive)
         groupMemberDues[expense.payingGroupMember].amount += amount;

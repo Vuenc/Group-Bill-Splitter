@@ -7,6 +7,7 @@ let Expense = require('../models/expenses');
 let escape_regex = require ('escape-string-regexp');
 
 let respondToError = require('../lib/helpers').respondToError;
+let isNearlyEqual = require('../lib/helpers').isNearlyEqual;
 
 function caseInsensitiveEscapedRegex(searchString) {
     return new RegExp(escape_regex(searchString.toLowerCase()), "i")
@@ -34,7 +35,7 @@ function getAll(includeNestedDetails, req, res) {
             let queryPredicate = {'groupEventId': req.params.groupEventId};
 
             // List of search queries which will either be connected by $and or by $or
-            queryList = []
+            queryList = [];
 
             // If 'memberNameSearch' is provided, search only for expenses where the payingGroupMember's or any of the
             // explicitly mentioned sharingGroupMembers' names contain the search string
@@ -51,7 +52,7 @@ function getAll(includeNestedDetails, req, res) {
             }
             // If 'minDate' or 'maxDate' is provided, search only for expenses within that date range
             if(query.minDate || query.maxDate) {
-                let datePredicate = {}
+                let datePredicate = {};
                 if(query.minDate) {
                     datePredicate['$gte'] = query.minDate;
                 }
@@ -108,6 +109,85 @@ function getOne(includeNestedDetails, req, res) {
         .catch(err => respondToError(res, err));
 }
 
+function checkExpenseValid (req) {
+    // Make sure the paying group member exists
+    return GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
+        .then(payingGroupMemberCount => {
+            if (payingGroupMemberCount === 0)
+                throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
+
+    // Check that no incompatible sharing/splitting options occur
+            if (req.body.isDirectPayment && req.body.sharingGroupMembers && req.body.sharingGroupMembers.length > 0)
+                throw { message: "Direct payment cannot be shared", http_status: 422 };
+            if (req.body.isDirectPayment && req.body.proportionalSplitting)
+                throw { message: "Direct payment cannot have proportional splitting", http_status: 422 };
+            if (req.body.proportionalSplitting && req.body.sharingGroupMembers && req.body.sharingGroupMembers.length > 0)
+                throw { message: "Expense cannot have both sharing group members and proportional splitting", http_status: 422 };
+
+    // Make sure the sharing group members exist and have no duplicates
+            return GroupMember.countDocuments({
+                _id: {$in: req.body.sharingGroupMembers},
+                groupEventId: req.params.groupEventId
+            });
+        })
+        .then(sharingGroupMembersCount => {
+            if (req.body.sharingGroupMembers && sharingGroupMembersCount !== req.body.sharingGroupMembers.length)
+                throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
+
+    // Make sure the splitting group members exist and have no duplicates and the splitting is valid
+            let splitting = req.body.proportionalSplitting;
+            if (splitting) {
+                let proportionalSplittingGroupMembers;
+                if (splitting.splitType === 'percentages') {
+                    if (splitting.amounts || !splitting.percentages || !(splitting.percentages.length > 0)) {
+                        throw { message: "Percentage splitting: percentages field required, amounts field not allowed", http_status: 422 };
+                    }
+                    let percentageValues = splitting.percentages.map(p => Number(p.percentage));
+                    if (percentageValues.some(v => !(v >= 0))) {
+                        throw {message: "Splitting percentages must not be negative"}
+                    }
+                    let sum = percentageValues.reduce((total, x) => total + x, 0);
+                    if (!isNearlyEqual(sum, 1)) {
+                        throw {message: "Splitting percentages must sum to 1"}
+                    }
+                    proportionalSplittingGroupMembers = splitting.percentages.map(p => p.groupMember)
+                } else if (splitting.splitType === 'amounts') {
+                    if (splitting.percentages || !splitting.amounts || !(splitting.amounts.length > 0)) {
+                        throw {
+                            message: "Amount splitting: amounts field required, percentages field not allowed",
+                            http_status: 422
+                        };
+                    }
+                    let amountValues = splitting.amounts.map(a => Number(a.amount));
+                    if (amountValues.some(v => !(v >= 0))) {
+                        throw {message: "Splitting amounts must not be negative"}
+                    }
+                    let sum = amountValues.reduce((total, x) => total + x, 0);
+                    if (!isNearlyEqual(sum, Number.parseFloat(req.body.amount))) {
+                        throw {message: "Splitting amounts must sum to expense amount"}
+                    }
+                    proportionalSplittingGroupMembers = splitting.amounts.map(p => p.groupMember)
+                }
+                return GroupMember.countDocuments({
+                    _id: {$in: proportionalSplittingGroupMembers},
+                    groupEventId: req.params.groupEventId
+                });
+            } else {
+                return Promise.resolve()
+            }
+        })
+        .then(splittingGroupMembersCount => {
+            if (req.body.proportionalSplitting && splittingGroupMembersCount !== (req.body.proportionalSplitting.percentages
+                ? req.body.proportionalSplitting.percentages : req.body.proportionalSplitting.amounts).length) {
+                throw {
+                    message: "Field proportionalSplitting contains invalid or duplicate group members",
+                    http_status: 422
+                }
+            }
+            return Promise.resolve()
+        })
+}
+
 router.getAllNested = (req, res) => {
     return getAll(true, req, res);
 };
@@ -127,22 +207,11 @@ router.getOneReferenced = (req, res) => {
 router.addExpense = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    // Make sure the paying group member exists
-    GroupMember.find({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
-        .then(payingGroupMember => {
-            if (payingGroupMember.length === 0)
-                throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
-
-            return GroupMember.find({_id: {$in: req.body.sharingGroupMembers}});
-        })
-        // Make sure the sharing group members exist and have no duplicates, then add the expense
-        .then(sharingGroupMembers => {
-            if (req.body.sharingGroupMembers && sharingGroupMembers.length !== req.body.sharingGroupMembers.length)
-                throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
-
+    checkExpenseValid(req)
+        .then(() => {
             let expense = new Expense(req.body);
             expense.groupEventId = req.params.groupEventId;
-            expense.schemaVersion = "2";
+            expense.schemaVersion = "3";
 
             return expense.save();
         })
@@ -155,18 +224,8 @@ router.addExpense = (req, res) => {
 router.editExpense = (req, res) => {
     res.setHeader('Content-Type', 'application/json');
 
-    GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
-        .then(payingGroupMemberCount => {
-            if (payingGroupMemberCount === 0)
-                throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
-
-            return GroupMember.countDocuments({_id: {$in: req.body.sharingGroupMembers}});
-        })
-        // Make sure the sharing group members exist and have no duplicates
-        .then(sharingGroupMembersCount => {
-            if (req.body.sharingGroupMembers && sharingGroupMembersCount !== req.body.sharingGroupMembers.length)
-                throw {message: "Field sharingGroupMembers includes invalid entries", http_status: 422};
-
+    checkExpenseValid(req)
+        .then(() => {
             return Expense.find({_id: req.params.id, groupEventId: req.params.groupEventId});
         })
         // Find the expense and edit it
@@ -181,7 +240,8 @@ router.editExpense = (req, res) => {
             expense.description = req.body.description;
             expense.sharingGroupMembers = req.body.sharingGroupMembers;
             expense.isDirectPayment = req.body.isDirectPayment;
-            expense.schemaVersion = "2";
+            expense.proportionalSplitting = req.body.proportionalSplitting;
+            expense.schemaVersion = "3";
 
             return expense.save();
         })
