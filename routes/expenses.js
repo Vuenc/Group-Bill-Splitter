@@ -117,7 +117,7 @@ function checkExpenseValid (req) {
                 throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
 
     // Check that no incompatible sharing/splitting options occur
-            if (req.body.isDirectPayment && req.body.sharingGroupMembers && req.body.sharingGroupMembers.length > 0)
+            if (req.body.isDirectPayment && req.body.sharingGroupMembers && req.body.sharingGroupMembers.length > 1)
                 throw { message: "Direct payment cannot be shared", http_status: 422 };
             if (req.body.isDirectPayment && req.body.proportionalSplitting)
                 throw { message: "Direct payment cannot have proportional splitting", http_status: 422 };
