@@ -109,9 +109,15 @@ function getOne(includeNestedDetails, req, res) {
         .catch(err => respondToError(res, err));
 }
 
-function checkExpenseValid (req) {
-    // Make sure the paying group member exists
-    return GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
+function checkExpenseValid (req, allowMissingFields = false) {
+    // Make sure the paying group member exists (ignore if not present and missing fields allowed)
+    let payingGroupMemberQuery = Promise.resolve(-1)
+    if (!allowMissingFields || req.body.payingGroupMember) {
+      payingGroupMemberQuery = GroupMember.countDocuments({_id: req.body.payingGroupMember, groupEventId: req.params.groupEventId})
+    }
+
+    // Return a promise that resolves if all checks are passed, and rejects otherwise
+    return payingGroupMemberQuery
         .then(payingGroupMemberCount => {
             if (payingGroupMemberCount === 0)
                 throw {message: "Group member with id " + req.body.payingGroupMember + " not found!", http_status: 404};
@@ -124,11 +130,14 @@ function checkExpenseValid (req) {
             if (req.body.proportionalSplitting && req.body.sharingGroupMembers && req.body.sharingGroupMembers.length > 0)
                 throw { message: "Expense cannot have both sharing group members and proportional splitting", http_status: 422 };
 
-    // Make sure the sharing group members exist and have no duplicates
-            return GroupMember.countDocuments({
+    // Make sure the sharing group members exist and have no duplicates (ignore if not present and missing fields allowed)
+            if (!allowMissingFields || req.body.sharingGroupMembers) {
+              return GroupMember.countDocuments({
                 _id: {$in: req.body.sharingGroupMembers},
-                groupEventId: req.params.groupEventId
-            });
+                groupEventId: req.params.groupEventId});
+            } else {
+              return Promise.resolve(-1);
+            }
         })
         .then(sharingGroupMembersCount => {
             if (req.body.sharingGroupMembers && sharingGroupMembersCount !== req.body.sharingGroupMembers.length)
@@ -267,5 +276,72 @@ router.deleteExpense = (req, res) =>  {
         // If the group event doesn't exist or deleting the expense failed, send error message
         .catch(err => respondToError(res, err, 'Expense not deleted!'));
 };
+
+router.editMultipleExpenses = (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  // TODO make sure:
+  // - direct payment => exactly one sharingGroupMember and no proportional splitting
+  // - sharing group members (length > 0) + proportional splitting must not occur at once
+
+  let countExpensesQuery = Expense.countDocuments({_id: {$in: req.body.expenseIds},
+    groupEventId: req.params.groupEventId, $or: [{isDirectPayment: false}, {isDirectPayment: undefined}]});
+  let countDirectPaymentsQuery = Expense.countDocuments({_id: {$in: req.body.expenseIds},
+    groupEventId: req.params.groupEventId, isDirectPayment: true});
+
+  let warning = null;
+  Promise.all([countExpensesQuery, countDirectPaymentsQuery])
+    .then(values => {
+      let [expensesCount, directPaymentsCount] = values;
+
+      // Make sure there is at least one expense/payment being updated
+      if (expensesCount + directPaymentsCount === 0) {
+        throw {message: 'No expense with matching id found', http_status: 422};
+      }
+      // If too few, but > 0 expenses/payments were found, return a warning, but continue with the update
+      else if (expensesCount + directPaymentsCount < req.body.expenseIds.length) {
+        warning = 'Some invalid expense ids were encountered (not all given ids existed)';
+        console.log(`Warning: ${warning} when editing multiple expenses!`);
+      }
+      // Make sure to not mix expenses and direct payments
+      if (expensesCount > 0 && directPaymentsCount > 0) {
+        throw {message: 'Cannot edit both expenses and direct payments at the same time', http_status: 422};
+      } else if (req.body.isDirectPayment !== undefined && ((directPaymentsCount > 0) ^ req.body.isDirectPayment)) {
+        throw {message: 'Cannot change isDirectPayment in multi-edit', http_status: 422};
+      }
+
+      // Set isDirectPayment such that checks in checkExpenseValid can take it into account
+      req.body.isDirectPayment = (directPaymentsCount > 0);
+      return checkExpenseValid(req, true);
+    })
+    .then(() => {
+      let updateFields = {
+        payingGroupMember: req.body.payingGroupMember,
+        amount: req.body.amount,
+        date: req.body.date,
+        description: req.body.description,
+        sharingGroupMembers: req.body.sharingGroupMembers,
+        isDirectPayment: req.body.isDirectPayment,
+        proportionalSplitting: req.body.proportionalSplitting,
+        schemaVersion: "3"
+      };
+      // Make sure `sharingGroupMembers` is set to [] if proportional splitting is active...
+      if (updateFields.proportionalSplitting) {
+        updateFields.sharingGroupMembers = [];
+      }
+      // ...and make sure `proportionalSplitting` is unset if `sharingGroupMembers` is set
+      else if (updateFields.sharingGroupMembers) {
+        updateFields.$unset = {proportionalSplitting: ""}
+      }
+      // Delete the undefined fields
+      Object.keys(updateFields).forEach(key => updateFields[key] !== undefined || delete updateFields[key])
+      return Expense.updateMany({_id: {$in: req.body.expenseIds}, groupEventId: req.params.groupEventId},
+        updateFields);
+    })
+    // If the expense was saved successfully, send a success message
+    .then(expense => res.send({message: 'Expenses edited successfully'}))
+    // If any of the checks failed or any other error occurred, send the error message
+    .catch(err => respondToError(res, err, 'Expenses not edited!'));
+}
 
 module.exports = router;

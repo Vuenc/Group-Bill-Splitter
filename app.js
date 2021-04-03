@@ -46,6 +46,7 @@ app.get('/groupEvents/:groupEventId/expenses-detailed', expensesRouter.getAllNes
 app.get('/groupEvents/:groupEventId/expenses/:id', expensesRouter.getOneReferenced);
 app.get('/groupEvents/:groupEventId/expenses-detailed/:id', expensesRouter.getOneNested);
 app.post('/groupEvents/:groupEventId/expenses', expensesRouter.addExpense);
+app.put('/groupEvents/:groupEventId/expenses', expensesRouter.editMultipleExpenses);
 app.put('/groupEvents/:groupEventId/expenses/:id', expensesRouter.editExpense);
 app.delete('/groupEvents/:groupEventId/expenses/:id', expensesRouter.deleteExpense);
 
