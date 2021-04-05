@@ -153,11 +153,11 @@ function checkExpenseValid (req, allowMissingFields = false) {
                     }
                     let percentageValues = splitting.percentages.map(p => Number(p.percentage));
                     if (percentageValues.some(v => !(v >= 0))) {
-                        throw {message: "Splitting percentages must not be negative"}
+                        throw {message: "Splitting percentages must not be negative", http_status: 422};
                     }
                     let sum = percentageValues.reduce((total, x) => total + x, 0);
                     if (!isNearlyEqual(sum, 1)) {
-                        throw {message: "Splitting percentages must sum to 1"}
+                        throw {message: "Splitting percentages must sum to 1", http_status: 422};
                     }
                     proportionalSplittingGroupMembers = splitting.percentages.map(p => p.groupMember)
                 } else if (splitting.splitType === 'amounts') {
@@ -166,6 +166,9 @@ function checkExpenseValid (req, allowMissingFields = false) {
                             message: "Amount splitting: amounts field required, percentages field not allowed",
                             http_status: 422
                         };
+                    }
+                    if (allowMissingFields && !req.body.amount) {
+                      throw {message: "Updating with amounts splitting requires setting amount!", http_status: 422};
                     }
                     let amountValues = splitting.amounts.map(a => Number(a.amount));
                     if (amountValues.some(v => !(v >= 0))) {
