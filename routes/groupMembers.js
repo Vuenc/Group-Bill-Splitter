@@ -81,7 +81,16 @@ router.deleteGroupMember = (req, res) => {
                 throw {message: "Group member with id " + req.params.id + " not found!", http_status: 404};
             groupMember = _groupMember[0];
 
-            return Expense.countDocuments({$or: [{payingGroupMember: groupMember._id}, {sharingGroupMembers: {$elemMatch: {$eq: groupMember._id}}}]});
+            // Use req.params.id instead of groupMember._id everywhere since in proportional splitting, id seems to be a string instead of ObjectId
+            let isPayingGroupMemberQuery = {payingGroupMember: req.params.id}
+            let isSharingGroupMemberQuery = {sharingGroupMembers: {$elemMatch: {$eq: req.params.id}}}
+            // Also disallow occurences with percentage/amount 0 (server should avoid these anyway)
+            let isInPercentageSplittingQuery =
+              {'proportionalSplitting.percentages': { $elemMatch: { groupMember: req.params.id }}}
+            let isInAmountSplittingQuery =
+              {'proportionalSplitting.amounts': { $elemMatch: { groupMember: req.params.id}}}
+            return Expense.countDocuments({$or: [isPayingGroupMemberQuery, isSharingGroupMemberQuery,
+                isInPercentageSplittingQuery, isInAmountSplittingQuery]});
         })
         // If there are no dependent expenses, find the group member and delete it
         .then(dependentExpensesCount => {

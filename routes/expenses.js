@@ -186,8 +186,8 @@ function checkExpenseValid (req, allowMissingFields = false) {
             }
         })
         .then(splittingGroupMembersCount => {
-            if (req.body.proportionalSplitting && splittingGroupMembersCount !== (req.body.proportionalSplitting.percentages
-                ? req.body.proportionalSplitting.percentages : req.body.proportionalSplitting.amounts).length) {
+            if (req.body.proportionalSplitting && splittingGroupMembersCount !==
+              (req.body.proportionalSplitting.percentages || req.body.proportionalSplitting.amounts).length) {
                 throw {
                     message: "Field proportionalSplitting contains invalid or duplicate group members",
                     http_status: 422
@@ -195,6 +195,19 @@ function checkExpenseValid (req, allowMissingFields = false) {
             }
             return Promise.resolve()
         })
+}
+
+// Removes zero entries from proportional splitting
+function simplifyProportionalSplitting (expense) {
+    if (expense.proportionalSplitting) {
+        if (expense.proportionalSplitting.percentages) {
+          expense.proportionalSplitting.percentages =
+            expense.proportionalSplitting.percentages.filter(p => p.percentage > 0)
+        } else if (expense.proportionalSplitting.amounts) {
+          expense.proportionalSplitting.amounts =
+            expense.proportionalSplitting.amounts.filter(a => a.amount > 0)
+        }
+    }
 }
 
 router.getAllNested = (req, res) => {
@@ -219,6 +232,7 @@ router.addExpense = (req, res) => {
     checkExpenseValid(req)
         .then(() => {
             let expense = new Expense(req.body);
+            simplifyProportionalSplitting(expense)
             expense.groupEventId = req.params.groupEventId;
             expense.schemaVersion = "3";
 
@@ -251,6 +265,8 @@ router.editExpense = (req, res) => {
             expense.isDirectPayment = req.body.isDirectPayment;
             expense.proportionalSplitting = req.body.proportionalSplitting;
             expense.schemaVersion = "3";
+
+            simplifyProportionalSplitting(expense)
 
             return expense.save();
         })
@@ -328,6 +344,7 @@ router.editMultipleExpenses = (req, res) => {
       // Make sure `sharingGroupMembers` is set to [] if proportional splitting is active...
       if (updateFields.proportionalSplitting) {
         updateFields.sharingGroupMembers = [];
+        simplifyProportionalSplitting(updateFields)
       }
       // ...and make sure `proportionalSplitting` is unset if `sharingGroupMembers` is set
       else if (updateFields.sharingGroupMembers) {
@@ -339,7 +356,7 @@ router.editMultipleExpenses = (req, res) => {
         updateFields);
     })
     // If the expense was saved successfully, send a success message
-    .then(expense => res.send({message: 'Expenses edited successfully'}))
+    .then(() => res.send({message: 'Expenses edited successfully'}))
     // If any of the checks failed or any other error occurred, send the error message
     .catch(err => respondToError(res, err, 'Expenses not edited!'));
 }
