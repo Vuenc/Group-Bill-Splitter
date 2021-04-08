@@ -35,7 +35,7 @@ function calculateGroupMemberDues(groupMembers, expenses) {
             }
         }
         // If expense is split proportionally based on amounts
-        else if (expense.proportionalSplitting.splitType === 'amount') {
+        else if (expense.proportionalSplitting.splitType === 'amounts') {
             for (amountInfo of expense.proportionalSplitting.amounts) {
                 groupMemberDues[percentageInfo.groupMember].amount -= amountInfo.amount;
             }
