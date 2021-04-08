@@ -299,10 +299,6 @@ router.deleteExpense = (req, res) =>  {
 router.editMultipleExpenses = (req, res) => {
   res.setHeader('Content-Type', 'application/json');
 
-  // TODO make sure:
-  // - direct payment => exactly one sharingGroupMember and no proportional splitting
-  // - sharing group members (length > 0) + proportional splitting must not occur at once
-
   let countExpensesQuery = Expense.countDocuments({_id: {$in: req.body.expenseIds},
     groupEventId: req.params.groupEventId, $or: [{isDirectPayment: false}, {isDirectPayment: undefined}]});
   let countDirectPaymentsQuery = Expense.countDocuments({_id: {$in: req.body.expenseIds},

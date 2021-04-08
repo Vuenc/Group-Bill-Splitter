@@ -12,6 +12,7 @@ const groupMembersRouter = require('./routes/groupMembers');
 const expensesRouter = require('./routes/expenses');
 const transactionsRouter = require('./routes/transactions');
 const costsRouter = require('./routes/costs');
+const proportionalSplittingsRouter = require('./routes/proportionalSplittings');
 
 let app = express();
 
@@ -54,6 +55,9 @@ app.get('/groupEvents/:groupEventId/transactions', transactionsRouter.getAllRefe
 app.get('/groupEvents/:groupEventId/transactions-detailed', transactionsRouter.getAllNested);
 
 app.get('/groupEvents/:groupEventId/costs', costsRouter.getAll);
+
+app.get('/groupEvents/:groupEventId/proportionalSplittings-popular', proportionalSplittingsRouter.getMostPopular);
+app.get('/groupEvents/:groupEventId/proportionalSplittings-recent', proportionalSplittingsRouter.getMostRecent);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

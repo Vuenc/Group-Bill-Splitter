@@ -1,0 +1,77 @@
+const express = require('express');
+const router = express.Router();
+const mongoose = require('mongoose');
+
+require('../models/mongooseConnection');
+const Expense = require('../models/expenses');
+
+const respondToError = require('../lib/helpers').respondToError;
+
+router.getMostPopular = (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  let mostPopularQuery =
+    Expense.aggregate().match({ // Select percentage-split expenses from the given group event
+      // Due to mongoose restrictions, we cannot pass an ObjectId as string in an aggregation
+      groupEventId: mongoose.Types.ObjectId(req.params.groupEventId),
+      'proportionalSplitting.splitType': 'percentages'
+    }).group({ // Aggregate and count occurrences of different splittings
+      _id: '$proportionalSplitting.percentages',
+      count: {
+        $sum: 1
+      }
+    }).project({ // Rename fields
+      percentages: '$_id',
+      count: '$count',
+      _id: false
+    }).sort({ // Sort in descending order by count
+      count: -1
+    });
+
+  if (req.query.maxCount) {
+    mostPopularQuery.limit(Number(req.query.maxCount));
+  }
+
+  // Execute the query and return the results
+  mostPopularQuery
+    .then(mostPopularSplittings => {
+      res.send(mostPopularSplittings);
+    })
+    // Handle any errors that occurred
+    .catch(err => respondToError(res, err));
+};
+
+router.getMostRecent = (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+
+  let mostRecentQuery =
+    Expense.aggregate().match({ // Select percentage-split expenses from the given group event
+      // Due to mongoose restrictions, we cannot pass an ObjectId as string in an aggregation
+      groupEventId: mongoose.Types.ObjectId(req.params.groupEventId),
+      'proportionalSplitting.splitType': 'percentages'
+    }).group({ // Aggregate occurrences of different splittings together with most recent id
+      _id: '$proportionalSplitting.percentages',
+      mostRecentExpenseId: {
+        $max: '$_id'
+      }
+    }).project({ // Rename fields
+      percentages: '$_id',
+      _id: '$mostRecentExpenseId'
+    }).sort({ // Sort in descending order by count
+      '_id': -1
+    });
+
+  if (req.query.maxCount) {
+    mostRecentQuery.limit(Number(req.query.maxCount));
+  }
+
+  // Execute the query and return the results
+  mostRecentQuery
+    .then(mostRecentSplittings => {
+      res.send(mostRecentSplittings);
+    })
+    // Handle any errors that occurred
+    .catch(err => respondToError(res, err));
+}
+
+module.exports = router;
