@@ -11,33 +11,33 @@ function calculateGroupMemberDues(groupMembers, expenses) {
     // groupMemberDues is a dictionary where the dues are calculated
     let groupMemberDues = {};
     // Initialize groupMemberDues
-    for (member of groupMembers) {
+    for (let member of groupMembers) {
         groupMemberDues[member._id] = {member: member, amount: 0};
     }
 
     // Split each expense to the group members who share it
-    for (expense of expenses) {
+    for (let expense of expenses) {
         let amount = Number(expense.amount);
         // If expense is shared evenly between all / some group members
         if (!expense.proportionalSplitting) {
             // Get the members who share the expense ([] is interpreted as everybody in the group)
             let expenseSharingMembers = expense.sharingGroupMembers.length > 0
                 ? expense.sharingGroupMembers : groupMembers.map(m => m._id);
-            for (member of expenseSharingMembers) {
+            for (let member of expenseSharingMembers) {
                 // For every sharing group member: count his part as dues (negative)
                 groupMemberDues[member].amount -= amount / expenseSharingMembers.length;
             }
         }
         // If expense is split proportionally based on percentages
         else if (expense.proportionalSplitting.splitType === 'percentages') {
-            for (percentageInfo of expense.proportionalSplitting.percentages) {
+            for (let percentageInfo of expense.proportionalSplitting.percentages) {
                 groupMemberDues[percentageInfo.groupMember].amount -= amount * percentageInfo.percentage;
             }
         }
         // If expense is split proportionally based on amounts
         else if (expense.proportionalSplitting.splitType === 'amounts') {
-            for (amountInfo of expense.proportionalSplitting.amounts) {
-                groupMemberDues[percentageInfo.groupMember].amount -= amountInfo.amount;
+            for (let amountInfo of expense.proportionalSplitting.amounts) {
+                groupMemberDues[amountInfo.groupMember].amount -= amountInfo.amount;
             }
         }
         // For the paying group member: count the amount as advanced money (positive)
